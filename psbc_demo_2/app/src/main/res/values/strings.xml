@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">app2</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Log out</string>
+    <string name="create_data">Picture</string>
+    <string name="title">Please login</string>
+    <string name="enter_username">Please enter username : </string>
+    <string name="enter_password">Please enter password : </string>
+    <string name="enter_btn">Enter</string>
+    <string name="exit_btn">Exit</string>
+    <string name="title_loc_data">Location Data</string>
+    <string name="title_remote_data">Remote Data</string>
+    <string name="center_text">No Data</string>
+    <string name="no_loc_data_text">No location data</string>
+    <string name="no_remote_data_text">No remote data</string>
+
+</resources>

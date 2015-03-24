@@ -1,0 +1,120 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    tools:context=".CheckPermissions"
+    tools:ignore="UnusedResources" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal" >
+
+        <LinearLayout
+            android:id="@+id/title_loc_data"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/white"
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/tv_layout_marginTop"
+                android:layout_marginTop="@dimen/tv_layout_marginTop"
+                android:gravity="center"
+                android:text="@string/title_loc_data"
+                android:textColor="@color/theme_color"
+                android:textSize="@dimen/tv_size" />
+
+            <LinearLayout
+                android:id="@+id/ooc_table_title_layout"
+                android:layout_width="fill_parent"
+                android:layout_height="4dip"
+                android:orientation="horizontal"
+                android:paddingLeft="4dip"
+                android:paddingRight="4dip" >
+
+                <View
+                    android:id="@+id/loc_data_table_slider"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:background="@color/theme_color"
+                    android:visibility="visible" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="1dip"
+            android:layout_height="fill_parent"
+            android:orientation="vertical"
+            android:paddingBottom="6dip"
+            android:paddingTop="6dip" >
+
+            <View
+                style="@style/line_style"
+                android:layout_width="1dip"
+                android:layout_height="fill_parent"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/title_remote_data"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/white"
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/tv_layout_marginTop"
+                android:layout_marginTop="@dimen/tv_layout_marginTop"
+                android:gravity="center"
+                android:text="@string/title_remote_data"
+                android:textColor="@color/theme_color"
+                android:textSize="@dimen/tv_size" />
+
+            <LinearLayout
+                android:id="@+id/enforce_table_title_layout"
+                android:layout_width="fill_parent"
+                android:layout_height="4dip"
+                android:orientation="horizontal"
+                android:paddingLeft="4dip"
+                android:paddingRight="4dip" >
+
+                <View
+                    android:id="@+id/remote_data_table_slider"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:background="@color/theme_color"
+                    android:visibility="visible" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="1dip"
+        android:orientation="horizontal" >
+
+        <View
+            style="@style/line_style"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:visibility="visible" />
+    </LinearLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/view_pager"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:flipInterval="30" />
+
+</LinearLayout>

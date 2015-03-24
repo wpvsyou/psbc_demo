@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.wp.demo.psbcdemo1.psbccase" >
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Holo.Light" >
+        <activity
+            android:name="com.wp.demo.psbcdemo1.demo.DemoActivity"
+            android:theme="@style/SettingActivityStyle"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="com.wp.demo.psbcdemo1.demo.PSBCContentProvider"
+            android:authorities="psbcdatabase"
+            android:exported="true" />
+    </application>
+
+</manifest>
