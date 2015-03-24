@@ -6,8 +6,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.Nullable;
-import android.support.v4.widget.CursorAdapter;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,7 +54,13 @@ public class LocDataListFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (msg.what == MSG_DATA_CHANGED) {
+                Log.d(TAG, "MSG_DATA_CHANGED");
                 if (null != mAdapter) {
+                    String selection = DemoActivity.ID + "=?";
+                    String[] selectionArgs = new String[]{TOKEN};
+                    Cursor cursor = getActivity().getContentResolver()
+                            .query(DemoActivity.COMPANY_DATA_URI, null, selection, selectionArgs, null);
+                    mAdapter.changeCursor(cursor);
                     mAdapter.notifyDataSetChanged();
                 }
             }
@@ -94,7 +98,13 @@ public class LocDataListFragment extends BaseFragment {
         DataChangedObserver observer = new DataChangedObserver(mDataChangedHandler);
         getActivity().getContentResolver().registerContentObserver(DemoActivity.PERSONNEL_URI, true, observer);
         getActivity().getContentResolver().registerContentObserver(DemoActivity.COMPANY_DATA_URI, true, observer);
-        mCenterLayout.setVisibility(View.VISIBLE);
+        String selection = DemoActivity.ID + "=?";
+        String[] selectionArgs = new String[]{TOKEN};
+        mSourceCursor = getActivity().getContentResolver().query(
+                DemoActivity.COMPANY_DATA_URI, null, selection,
+                selectionArgs, null);
+        mAdapter = new CreateViewAdapter(getActivity());
+        mListView.setAdapter(mAdapter);
         init(TOKEN);
     }
 
@@ -102,56 +112,30 @@ public class LocDataListFragment extends BaseFragment {
         Log.d(TAG, "The TOKEN is [" + token + "]");
         if (token == null) {
             mCenterLayout.setVisibility(View.VISIBLE);
-        } else {
+        } else if (mSourceCursor != null && mSourceCursor.moveToFirst()) {
             mCenterLayout.setVisibility(View.GONE);
             mListView.setVisibility(View.VISIBLE);
-            String selection = DemoActivity.ID + "=?";
-            String[] selectionArgs = new String[]{token};
-            mSourceCursor = getActivity().getContentResolver().query(
-                    DemoActivity.COMPANY_DATA_URI, null, selection,
-                    selectionArgs, null);
-            if (mSourceCursor != null && mSourceCursor.moveToFirst()) {
-                try {
-                    mAdapter = new CreateViewAdapter(getActivity(), mSourceCursor);
-                    mListView.setAdapter(mAdapter);
-                } catch (Exception e) {
-                    // TODO: handle exception
-                    e.printStackTrace();
-                }
-            } else {
-                Log.d(TAG, "The cursor is empty or the data is empty!");
-                mCenterLayout.setVisibility(View.VISIBLE);
+            try {
+                mAdapter.changeCursor(mSourceCursor);
+                mAdapter.notifyDataSetChanged();
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
             }
         }
     }
 
-    class CreateViewAdapter extends CursorAdapter {
+    class CreateViewAdapter extends GroupingListAdapter {
         Context mContext;
 
         @SuppressWarnings("deprecation")
-        public CreateViewAdapter(Context context, Cursor c) {
+        public CreateViewAdapter(Context context) {
             // TODO Auto-generated constructor stub
-            super(context, c);
+            super(context);
             mContext = context;
         }
 
-        @Override
-        public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            LayoutInflater inflater = (LayoutInflater) mContext
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View view = inflater.inflate(
-                    R.layout.location_data_list_item_layout, parent, false);
-            ViewHolder holder = new ViewHolder();
-            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
-            holder.titleString = (TextView) view.findViewById(R.id.item_title);
-            holder.contentText = (TextView) view
-                    .findViewById(R.id.item_content_string);
-            view.setTag(holder);
-            return view;
-        }
-
-        @Override
-        public void bindView(View view, Context context, Cursor cursor) {
+        public void bindView(View view, Cursor cursor, int count) {
             // TODO Auto-generated method stub
             String json = cursor.getString(cursor
                     .getColumnIndex(DemoActivity.DATA_1));
@@ -184,73 +168,73 @@ public class LocDataListFragment extends BaseFragment {
             Log.d(TAG, "The bindView end!");
         }
 
-//        @Override
-//        protected void addGroups(Cursor cursor) {
-//
-//        }
-//
-//        @Override
-//        protected View newStandAloneView(Context context, ViewGroup parent) {
-//            // TODO Auto-generated method stub
-//            LayoutInflater inflater = (LayoutInflater) mContext
-//                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            View view = inflater.inflate(
-//                    R.layout.location_data_list_item_layout, parent, false);
-//            ViewHolder holder = new ViewHolder();
-//            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
-//            holder.titleString = (TextView) view.findViewById(R.id.item_title);
-//            holder.contentText = (TextView) view
-//                    .findViewById(R.id.item_content_string);
-//            view.setTag(holder);
-//            return view;
-//        }
-//
-//        @Override
-//        protected void bindStandAloneView(View view, Context context, Cursor cursor) {
-//            bindView(view, cursor, 1);
-//        }
-//
-//        @Override
-//        protected View newGroupView(Context context, ViewGroup parent) {
-//            // TODO Auto-generated method stub
-//            LayoutInflater inflater = (LayoutInflater) mContext
-//                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            View view = inflater.inflate(
-//                    R.layout.location_data_list_item_layout, parent, false);
-//            ViewHolder holder = new ViewHolder();
-//            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
-//            holder.titleString = (TextView) view.findViewById(R.id.item_title);
-//            holder.contentText = (TextView) view
-//                    .findViewById(R.id.item_content_string);
-//            view.setTag(holder);
-//            return view;
-//        }
-//
-//        @Override
-//        protected void bindGroupView(View view, Context context, Cursor cursor, int groupSize, boolean expanded) {
-//            bindView(view, cursor, groupSize);
-//        }
-//
-//        @Override
-//        protected View newChildView(Context context, ViewGroup parent) {
-//            // TODO Auto-generated method stub
-//            LayoutInflater inflater = (LayoutInflater) mContext
-//                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            View view = inflater.inflate(
-//                    R.layout.location_data_list_item_layout, parent, false);
-//            ViewHolder holder = new ViewHolder();
-//            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
-//            holder.titleString = (TextView) view.findViewById(R.id.item_title);
-//            holder.contentText = (TextView) view
-//                    .findViewById(R.id.item_content_string);
-//            view.setTag(holder);
-//            return view;
-//        }
-//
-//        @Override
-//        protected void bindChildView(View view, Context context, Cursor cursor) {
-//            bindView(view, cursor, 1);
-//        }
+        @Override
+        protected void addGroups(Cursor cursor) {
+
+        }
+
+        @Override
+        protected View newStandAloneView(Context context, ViewGroup parent) {
+            // TODO Auto-generated method stub
+            LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(
+                    R.layout.location_data_list_item_layout, parent, false);
+            ViewHolder holder = new ViewHolder();
+            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
+            holder.titleString = (TextView) view.findViewById(R.id.item_title);
+            holder.contentText = (TextView) view
+                    .findViewById(R.id.item_content_string);
+            view.setTag(holder);
+            return view;
+        }
+
+        @Override
+        protected void bindStandAloneView(View view, Context context, Cursor cursor) {
+            bindView(view, cursor, 1);
+        }
+
+        @Override
+        protected View newGroupView(Context context, ViewGroup parent) {
+            // TODO Auto-generated method stub
+            LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(
+                    R.layout.location_data_list_item_layout, parent, false);
+            ViewHolder holder = new ViewHolder();
+            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
+            holder.titleString = (TextView) view.findViewById(R.id.item_title);
+            holder.contentText = (TextView) view
+                    .findViewById(R.id.item_content_string);
+            view.setTag(holder);
+            return view;
+        }
+
+        @Override
+        protected void bindGroupView(View view, Context context, Cursor cursor, int groupSize, boolean expanded) {
+            bindView(view, cursor, groupSize);
+        }
+
+        @Override
+        protected View newChildView(Context context, ViewGroup parent) {
+            // TODO Auto-generated method stub
+            LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View view = inflater.inflate(
+                    R.layout.location_data_list_item_layout, parent, false);
+            ViewHolder holder = new ViewHolder();
+            holder.imageView = (ImageView) view.findViewById(R.id.image_view);
+            holder.titleString = (TextView) view.findViewById(R.id.item_title);
+            holder.contentText = (TextView) view
+                    .findViewById(R.id.item_content_string);
+            view.setTag(holder);
+            return view;
+        }
+
+        @Override
+        protected void bindChildView(View view, Context context, Cursor cursor) {
+            bindView(view, cursor, 1);
+        }
 
         class ViewHolder {
             ImageView imageView;
@@ -258,6 +242,7 @@ public class LocDataListFragment extends BaseFragment {
             TextView contentText;
             Button actionBtnButton;
         }
+
     }
 
     public void updateToken(String token) {
