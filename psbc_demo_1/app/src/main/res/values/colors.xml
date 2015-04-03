@@ -4,5 +4,6 @@
     <color name="white">@android:color/white</color>
     <color name="theme_color">#3ab9a5</color>
     <color name="gray">#CCCCCC</color>
+    <color name="color_touch">#42ac9c</color>
 
 </resources>

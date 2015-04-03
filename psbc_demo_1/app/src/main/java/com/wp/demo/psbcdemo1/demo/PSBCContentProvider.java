@@ -10,19 +10,16 @@ import android.provider.BaseColumns;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
 
-import com.wp.demo.psbcdemo1.demo.PSBCDatabaseHelper.*;
+import com.wp.demo.psbc.count.PSBCCount;
+import com.wp.demo.psbc.count.PSBCCount.*;
 
 public class PSBCContentProvider extends ContentProvider {
 
-	public static final String AUTHORITY = "psbcdatabase";
+	public static final String AUTHORITY = PSBCCount.DATABASE_NAME;
 	public static final String COMPANY_DATA_TYPE = "vnd.android.cursor.dir/"
-			+ PSBCDatabaseHelper.Tables.COMPANY_DATA;
+			+ Tables.COMPANY_DATA;
 	public static final String PERSONNEL_TYPE = "vnd.android.cursor.dir/"
 			+ Tables.PERSONNEL;
-	public static final Uri COMPANY_DATA_URI = Uri.parse("content://"
-			+ PSBCDatabaseHelper.DATABASE_NAME + "/" + Tables.COMPANY_DATA);
-	public static final Uri PERSONNEL_URI = Uri.parse("content://"
-			+ PSBCDatabaseHelper.DATABASE_NAME + "/" + Tables.PERSONNEL);
 	private static final int COMPANY_DATA = 1;
 	private static final int PERSONNEL = 2;
 	private static final UriMatcher sUriMatcher = new UriMatcher(
@@ -61,9 +58,9 @@ public class PSBCContentProvider extends ContentProvider {
 		int i = sUriMatcher.match(uri);
 		String limit = getLimit(uri);
 		if (i == PERSONNEL) {
-			qb.setTables(PSBCDatabaseHelper.Tables.PERSONNEL);
+			qb.setTables(PSBCCount.Tables.PERSONNEL);
 		} else if (i == COMPANY_DATA) {
-			qb.setTables(PSBCDatabaseHelper.Tables.COMPANY_DATA);
+			qb.setTables(PSBCCount.Tables.COMPANY_DATA);
 		}
 		Cursor cursor = qb.query(db, projection, selection, selectionArgs,
 				null, null, null, limit);
@@ -74,7 +71,7 @@ public class PSBCContentProvider extends ContentProvider {
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 		SQLiteDatabase db = mDbHelper.getWritableDatabase();
-		long id = 0;
+		long id;
 		int i = sUriMatcher.match(uri);
 		if (i == COMPANY_DATA) {
 			id = db.insert(Tables.COMPANY_DATA, null, values);

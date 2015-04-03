@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">app1</string>
+    <string name="app_name">PSBC test demo I</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Log out</string>
     <string name="title">Please login</string>
@@ -14,5 +14,9 @@
     <string name="center_text">No Data</string>
     <string name="no_loc_data_text">No location data</string>
     <string name="no_remote_data_text">No remote data</string>
+    <string name="loading_text">Please wait loading&#8230;</string>
+
+    <string name="setting_error_open_image">很抱歉，由于图片尺寸过大，或手机内存不足，导致图片打开失败。</string>
+    <string name="setting_checkupdate_wait_please">请稍后&#8230;</string>
 
 </resources>

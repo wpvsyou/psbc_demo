@@ -1,8 +1,14 @@
 package com.wp.demo.psbcdemo2;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,11 +22,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.wp.demo.psbc.count.PSBCCount;
 import com.wp.demo.psbcdemo2.tools.BaseFragment;
 import com.wp.demo.psbcdemo2.tools.GroupingListAdapter;
+import com.wp.demo.psbcdemo2.tools.SimpleSingleImageViewer;
 
+import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -56,12 +66,22 @@ public class LocDataListFragment extends BaseFragment {
             if (msg.what == MSG_DATA_CHANGED) {
                 Log.d(TAG, "MSG_DATA_CHANGED");
                 if (null != mAdapter) {
-                    String selection = DemoActivity.ID + "=?";
+                    String selection = PSBCCount.Personnel.ID + "=?";
                     String[] selectionArgs = new String[]{TOKEN};
-                    Cursor cursor = getActivity().getContentResolver()
-                            .query(DemoActivity.COMPANY_DATA_URI, null, selection, selectionArgs, null);
-                    mAdapter.changeCursor(cursor);
-                    mAdapter.notifyDataSetChanged();
+                    Log.d(TAG, "observer : check the uri --> " + PSBCCount.Uri.COMPANY_DATA_URI);
+                    Cursor cursor = mContentResolver.
+                            query(PSBCCount.Uri.COMPANY_DATA_URI, null, selection, selectionArgs, null);
+                    if (null != cursor) {
+                        mListView.setVisibility(View.VISIBLE);
+                        mCenterLayout.setVisibility(View.GONE);
+                        Log.d(TAG, "observer : the cursor un empty! cursor --> " + cursor.toString());
+                        mAdapter.changeCursor(cursor);
+                        mAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.d(TAG, "observer : the cursor was empty!");
+                        mCenterLayout.setVisibility(View.VISIBLE);
+                        mListView.setVisibility(View.GONE);
+                    }
                 }
             }
         }
@@ -72,6 +92,13 @@ public class LocDataListFragment extends BaseFragment {
     CreateViewAdapter mAdapter;
     static String TOKEN;
     Cursor mSourceCursor;
+    ContentResolver mContentResolver;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mContentResolver = getActivity().getContentResolver();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -96,23 +123,23 @@ public class LocDataListFragment extends BaseFragment {
             TOKEN = bundle.getString(DemoActivity.KEY_TOKEN);
         } else Log.d(TAG, "Get arguments was empty!");
         DataChangedObserver observer = new DataChangedObserver(mDataChangedHandler);
-        getActivity().getContentResolver().registerContentObserver(DemoActivity.PERSONNEL_URI, true, observer);
-        getActivity().getContentResolver().registerContentObserver(DemoActivity.COMPANY_DATA_URI, true, observer);
-        String selection = DemoActivity.ID + "=?";
+        getActivity().getContentResolver().registerContentObserver(PSBCCount.Uri.PERSONNEL_URI, true, observer);
+        getActivity().getContentResolver().registerContentObserver(PSBCCount.Uri.COMPANY_DATA_URI, true, observer);
+
+        String selection = PSBCCount.Company_data.ID + "=?";
         String[] selectionArgs = new String[]{TOKEN};
         mSourceCursor = getActivity().getContentResolver().query(
-                DemoActivity.COMPANY_DATA_URI, null, selection,
+                PSBCCount.Uri.COMPANY_DATA_URI, null, selection,
                 selectionArgs, null);
         mAdapter = new CreateViewAdapter(getActivity());
         mListView.setAdapter(mAdapter);
+        mCenterLayout.setVisibility(View.VISIBLE);
         init(TOKEN);
     }
 
     protected void init(String token) {
         Log.d(TAG, "The TOKEN is [" + token + "]");
-        if (token == null) {
-            mCenterLayout.setVisibility(View.VISIBLE);
-        } else if (mSourceCursor != null && mSourceCursor.moveToFirst()) {
+        if (mSourceCursor != null && mSourceCursor.moveToFirst()) {
             mCenterLayout.setVisibility(View.GONE);
             mListView.setVisibility(View.VISIBLE);
             try {
@@ -122,6 +149,8 @@ public class LocDataListFragment extends BaseFragment {
                 // TODO: handle exception
                 e.printStackTrace();
             }
+        } else {
+            Log.d(TAG, "mCursor was empty!");
         }
     }
 
@@ -136,34 +165,47 @@ public class LocDataListFragment extends BaseFragment {
         }
 
         public void bindView(View view, Cursor cursor, int count) {
+            Log.d(TAG, "bindView!");
             // TODO Auto-generated method stub
-            String json = cursor.getString(cursor
-                    .getColumnIndex(DemoActivity.DATA_1));
-            DemoActivity.BeanCompanyData data = new Gson().fromJson(json,
-                    DemoActivity.BeanCompanyData.class);
-            Log.d(TAG, "Check the source [ the title is {" + data.title + "} ]");
             final ViewHolder holder = (ViewHolder) view.getTag();
-            if (null != data.bitmap) {
-                Log.d(TAG, "the bitmap un empty!");
-                holder.imageView.setImageBitmap(data.bitmap);
+            ByteArrayInputStream thumbnailStream = new ByteArrayInputStream
+                    (cursor.getBlob(cursor.getColumnIndex(PSBCCount.Company_data.DATA_THUMBNAIL)));
+            Drawable drawable = Drawable.createFromStream(thumbnailStream, "img");
+            if (null != drawable) {
+                Log.d(TAG, "The drawable un empty!");
+                holder.imageView.setImageDrawable(drawable);
             } else {
-                Log.d(TAG, "the bitmap is empty!");
+                Log.d(TAG, "the source img is empty!");
                 holder.imageView.setImageDrawable(getActivity().getResources()
                         .getDrawable(R.drawable.ic_launcher));
             }
-            if (TextUtils.isEmpty(data.title)) {
-                SimpleDateFormat formatter = new SimpleDateFormat(
-                        "yyyy年MM月dd日   HH:mm:ss");
+//            byte[] os = cursor.getBlob(cursor.getColumnIndex(PSBCCount.Company_data.DATA_IMAGE));
+//            final Intent intent = new Intent(getActivity(), SimpleSingleImageViewer.class);
+//            intent.putExtra(SimpleSingleImageViewer.IMAGE_OS, os);
+//            holder.imageView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if (null != intent) {
+//                        getActivity().startActivity(intent);
+//                    } else {
+//                        Toast.makeText(getActivity(), "Read file error!", Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//            });
+            String title = cursor.getString(cursor.getColumnIndex(PSBCCount.Company_data.DATA_INFORMATION));
+            if (TextUtils.isEmpty(title)) {
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日   HH:mm:ss");
                 Date curDate = new Date(System.currentTimeMillis());
                 String str = formatter.format(curDate);
                 holder.titleString.setText("PSBC test demo app , create a new picture when " + str);
             } else {
-                holder.titleString.setText(data.title);
+                holder.titleString.setText(title);
             }
-            if (TextUtils.isEmpty(data.data_1)) {
+            String information = cursor.getString(cursor.getColumnIndex(PSBCCount.Company_data.DATA_TITLE));
+            if (TextUtils.isEmpty(information)) {
                 holder.contentText.setText("Empty!");
             } else {
-                holder.contentText.setText(data.data_1);
+                holder.contentText.setText(information);
             }
             Log.d(TAG, "The bindView end!");
         }
@@ -256,5 +298,9 @@ public class LocDataListFragment extends BaseFragment {
         if (null != mSourceCursor) {
             mSourceCursor.close();
         }
+    }
+
+    public void updateView() {
+        mDataChangedHandler.sendEmptyMessage(MSG_DATA_CHANGED);
     }
 }

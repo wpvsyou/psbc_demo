@@ -35,13 +35,17 @@
         android:orientation="horizontal" >
 
         <Button
+            style="@style/PSBC_Button_bkg"
             android:id="@+id/enter"
             android:layout_weight="1"
+            android:layout_marginRight="5dip"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/enter_btn" />
 
         <Button
+            android:layout_marginLeft="5dip"
+            style="@style/PSBC_Button_bkg"
             android:id="@+id/exit"
             android:layout_weight="1"
             android:layout_width="match_parent"

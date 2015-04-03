@@ -29,8 +29,12 @@
     </LinearLayout>
 
     <ListView
+        android:paddingRight="5dip"
+        android:paddingLeft="5dip"
         android:visibility="gone"
         android:id="@+id/list_view"
+        android:dividerHeight="1dip"
+        android:divider="@color/theme_color"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

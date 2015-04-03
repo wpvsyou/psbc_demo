@@ -1,48 +1,30 @@
 package com.wp.demo.psbcdemo2;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.media.ThumbnailUtils;
-import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
+import com.wp.demo.psbc.count.PSBCCount;
+import com.wp.demo.psbc.count.PSBCCount.Company_data;
 import com.wp.demo.psbcdemo2.tools.BaseFragment;
 import com.wp.demo.psbcdemo2.tools.BaseFragmentActivity;
+
+import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class DemoActivity extends BaseFragmentActivity implements
         DemoFragment.UserSelectLogin {
 
     public static final String TAG = "PSBC_case_demo_debug";
-    public static final String DATABASE_NAME = "psbcdatabase";
-    public static final String ID = "id";
-    public static final String USER_NAME = "user_name";
-    public static final String PASSWORD = "password";
-    public static final String COMPANY_DATA = "company_data";
-    public static final String PERSONNEL = "personnel";
-    public static final String DATA_1 = "data_1";
-
-    public static final Uri COMPANY_DATA_URI = Uri.parse("content://"
-            + DATABASE_NAME + "/" + COMPANY_DATA);
-    public static final Uri PERSONNEL_URI = Uri.parse("content://"
-            + DATABASE_NAME + "/" + PERSONNEL);
-
     public final static String KEY_TOKEN = "key_token";
     LocDataListFragment mLocDataListFragment;
     static boolean HAS_LOGIN;
@@ -55,6 +37,7 @@ public class DemoActivity extends BaseFragmentActivity implements
         setContentView(R.layout.demo_activity_layout);
         if (null == savedInstanceState) {
             DemoFragment fragment = new DemoFragment();
+            getSupportFragmentManager().popBackStack();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment_container, fragment).commit();
         }
@@ -71,6 +54,7 @@ public class DemoActivity extends BaseFragmentActivity implements
                 bundle.putString(KEY_TOKEN, OBJ);
                 mLocDataListFragment.setArguments(bundle);
             } else mLocDataListFragment.updateToken(OBJ);
+            getSupportFragmentManager().popBackStack();
             getSupportFragmentManager().beginTransaction().setCustomAnimations(
                     android.R.anim.fade_in, android.R.anim.fade_out);
             getSupportFragmentManager().beginTransaction()
@@ -85,21 +69,19 @@ public class DemoActivity extends BaseFragmentActivity implements
         HAS_LOGIN = true;
         Log.d(TAG, "Check the token in the DemoActivity callback method! [" + obj + "]");
         OBJ = obj;
-        if (null == mLocDataListFragment) {
-            Log.d(TAG, "The mLocDataListFragment is empty!");
-            mLocDataListFragment = new LocDataListFragment();
-            Bundle bundle = new Bundle();
-            bundle.putString(KEY_TOKEN, OBJ);
-            mLocDataListFragment.setArguments(bundle);
-        } else {
-            Log.d(TAG, "update token to [" + OBJ + "]");
-            mLocDataListFragment.updateToken(OBJ);
-        }
+        Log.d(TAG, "The mLocDataListFragment is empty!");
+        mLocDataListFragment = new LocDataListFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(KEY_TOKEN, OBJ);
+        mLocDataListFragment.setArguments(bundle);
+        getSupportFragmentManager().popBackStack();
         getSupportFragmentManager().beginTransaction().setCustomAnimations(
                 android.R.anim.fade_in, android.R.anim.fade_out);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, mLocDataListFragment)
                 .commit();
+        mLocDataListFragment.updateToken(OBJ);
+        mLocDataListFragment.updateView();
     }
 
     @Override
@@ -121,6 +103,7 @@ public class DemoActivity extends BaseFragmentActivity implements
             if (null != demoFragment && !(demoFragment instanceof DemoFragment)) {
                 HAS_LOGIN = false;
                 DemoFragment fragment = new DemoFragment();
+                getSupportFragmentManager().popBackStack();
                 getSupportFragmentManager().beginTransaction()
                         .setCustomAnimations(android.R.anim.fade_in,
                                 android.R.anim.fade_out);
@@ -151,55 +134,61 @@ public class DemoActivity extends BaseFragmentActivity implements
         if (resultCode == Activity.RESULT_OK) {
             Bundle bundle = data.getExtras();
             Bitmap bitmap = (Bitmap) bundle.get("data");
-            BeanCompanyData beanCompanyData = new BeanCompanyData();
-            SimpleDateFormat formatter = new SimpleDateFormat(
-                    "yyyy年MM月dd日   HH:mm:ss");
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日   HH:mm:ss");
             Date curDate = new Date(System.currentTimeMillis());
             String str = formatter.format(curDate);
-            beanCompanyData.title = "PSBC test demo app , create a new picture when "
-                    + str;
-
-            Log.e(TAG, "保存图片");
-            File f = new File(Environment.getDownloadCacheDirectory(), "picture");
-            if (f.exists()) {
-                f.delete();
-            }
-            try {
-                FileOutputStream out = new FileOutputStream(f);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
-                out.flush();
-                out.close();
-                Log.i(TAG, "已经保存");
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            Bitmap smallBmp = ThumbnailUtils.createVideoThumbnail(f.toString(), 320);
-            beanCompanyData.bitmap = smallBmp;
-            beanCompanyData.data_1 = "This is a test picture!";
-            Log.d(TAG, "The title is [" + beanCompanyData.title + "] the data_1 is [" + beanCompanyData.data_1 + "]");
-            String json = new Gson().toJson(beanCompanyData);
+            String information = "PSBC test demo app , create a new picture when " + str;
+            String title = "This is a test picture!";
+            final ByteArrayOutputStream os = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, os);
+            Bitmap thumbnail = getBitmapByWidth(os.toByteArray(), 0, os.toByteArray().length, 260, 10);
+            final ByteArrayOutputStream thumbnailOs = new ByteArrayOutputStream();
+            thumbnail.compress(Bitmap.CompressFormat.PNG, 100, thumbnailOs);
             ContentValues values = new ContentValues();
-            values.put(DATA_1, json);
-            values.put(ID, OBJ);
-            getContentResolver().insert(COMPANY_DATA_URI, values);
+            values.put(Company_data.ID, OBJ);
+            values.put(Company_data.DATA_TITLE, title);
+            values.put(Company_data.DATA_INFORMATION, information);
+            values.put(Company_data.DATA_IMAGE, os.toByteArray());
+            values.put(Company_data.DATA_THUMBNAIL, thumbnailOs.toByteArray());
+            if (getContentResolver().insert(PSBCCount.Uri.COMPANY_DATA_URI, values) != null) {
+                Log.d(TAG, "Insert image was done!");
+            } else {
+                Log.d(TAG, "Error insert image!!!");
+            }
         }
     }
 
-    public static class BeanCompanyData {
-        String title;
-        String data_1;
-        Bitmap bitmap;
+    public static Bitmap getBitmapByWidth(byte[] in, int offset, int length, int width, int addedScaling) {
+        Bitmap temBitmap = null;
+        try {
+            BitmapFactory.Options outOptions = new BitmapFactory.Options();
+            // 设置该属性为true，不加载图片到内存，只返回图片的宽高到options中。
+            outOptions.inJustDecodeBounds = true;
+            // 加载获取图片的宽高
+            BitmapFactory.decodeByteArray(in, offset, length, outOptions);
+            int height = outOptions.outHeight;
+            if (outOptions.outWidth > width) {
+                // 根据宽设置缩放比例
+                outOptions.inSampleSize = outOptions.outWidth / width + 1 + addedScaling;
+                outOptions.outWidth = width;
+                // 计算缩放后的高度
+                height = outOptions.outHeight / outOptions.inSampleSize;
+                outOptions.outHeight = height;
+            }
+            // 重新设置该属性为false，加载图片返回
+            outOptions.inJustDecodeBounds = false;
+            outOptions.inPurgeable = true;
+            outOptions.inInputShareable = true;
+            temBitmap = BitmapFactory.decodeByteArray(in, offset, length, outOptions);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return temBitmap;
     }
 
-    private static Bitmap small(Bitmap bitmap) {
-        Matrix matrix = new Matrix();
-        matrix.postScale(0.2f, 0.2f); //长和宽放大缩小的比例
-        Bitmap resizeBmp = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        return resizeBmp;
+    @Override
+    public void onBackHomeOnClick() {
+        super.onBackHomeOnClick();
+        this.finish();
     }
 }

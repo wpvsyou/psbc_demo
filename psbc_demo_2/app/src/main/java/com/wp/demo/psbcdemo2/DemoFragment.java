@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.wp.demo.psbcdemo2.tools.BaseFragment;
 import com.wp.demo.psbcdemo2.tools.EditTextWithDelete;
+import com.wp.demo.psbc.count.PSBCCount.*;
 
 public class DemoFragment extends BaseFragment implements OnClickListener {
 
@@ -97,18 +98,18 @@ public class DemoFragment extends BaseFragment implements OnClickListener {
             Toast.makeText(getActivity(), "Please enter password!",
                     Toast.LENGTH_SHORT).show();
         } else {
-            String selection = DemoActivity.USER_NAME + "=?";
+            String selection = Personnel.USER_NAME + "=?";
             String[] selectionArgs = new String[]{mUsername.getText()};
             Cursor cursor = getActivity().getContentResolver().query(
-                    DemoActivity.PERSONNEL_URI, null, selection, selectionArgs,
+                    Uri.PERSONNEL_URI, null, selection, selectionArgs,
                     null);
             if (null != cursor && cursor.moveToFirst()) {
                 try {
                     String locPassword = cursor.getString(cursor
-                            .getColumnIndex(DemoActivity.PASSWORD));
+                            .getColumnIndex(Personnel.PASSWORD));
                     if (TextUtils.equals(locPassword, mPassword.getText())) {
                         String token = cursor.getString(cursor
-                                .getColumnIndex(DemoActivity.ID));
+                                .getColumnIndex(Personnel.ID));
                         if (TextUtils.isEmpty(token)) {
                             Toast.makeText(
                                     getActivity(),
