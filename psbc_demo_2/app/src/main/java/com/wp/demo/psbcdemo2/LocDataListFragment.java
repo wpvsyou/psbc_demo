@@ -2,13 +2,9 @@ package com.wp.demo.psbcdemo2;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,23 +16,26 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.wp.demo.psbc.count.PSBCCount;
+import com.wp.demo.psbcdemo2.scrollerdelete_master.DeleteAdapter;
+import com.wp.demo.psbcdemo2.scrollerdelete_master.ScrollListviewDelete;
 import com.wp.demo.psbcdemo2.tools.BaseFragment;
 import com.wp.demo.psbcdemo2.tools.GroupingListAdapter;
-import com.wp.demo.psbcdemo2.tools.SimpleSingleImageViewer;
 
 import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class LocDataListFragment extends BaseFragment {
+public class LocDataListFragment extends BaseFragment implements ScrollListviewDelete.ItemClickListener{
 
     private final static int MSG_DATA_CHANGED = 1;
+
+    @Override
+    public void onItemClick(int position) {
+
+    }
 
     class DataChangedObserver extends ContentObserver {
 
@@ -72,7 +71,7 @@ public class LocDataListFragment extends BaseFragment {
                     Cursor cursor = mContentResolver.
                             query(PSBCCount.Uri.COMPANY_DATA_URI, null, selection, selectionArgs, null);
                     if (null != cursor) {
-                        mListView.setVisibility(View.VISIBLE);
+//                        mListView.setVisibility(View.VISIBLE);
                         mCenterLayout.setVisibility(View.GONE);
                         Log.d(TAG, "observer : the cursor un empty! cursor --> " + cursor.toString());
                         mAdapter.changeCursor(cursor);
@@ -80,7 +79,7 @@ public class LocDataListFragment extends BaseFragment {
                     } else {
                         Log.d(TAG, "observer : the cursor was empty!");
                         mCenterLayout.setVisibility(View.VISIBLE);
-                        mListView.setVisibility(View.GONE);
+//                        mListView.setVisibility(View.GONE);
                     }
                 }
             }
@@ -88,11 +87,14 @@ public class LocDataListFragment extends BaseFragment {
     };
 
     LinearLayout mCenterLayout;
-    ListView mListView;
-    CreateViewAdapter mAdapter;
+//    ListView mListView;
+//    CreateViewAdapter mAdapter;
     static String TOKEN;
     Cursor mSourceCursor;
     ContentResolver mContentResolver;
+
+    ScrollListviewDelete mListView;
+    DeleteAdapter mAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -117,7 +119,8 @@ public class LocDataListFragment extends BaseFragment {
         // TODO Auto-generated method stub
         super.onViewCreated(view, savedInstanceState);
         mCenterLayout = (LinearLayout) view.findViewById(R.id.center_layout);
-        mListView = (ListView) view.findViewById(R.id.list_view);
+//        mListView = (ListView) view.findViewById(R.id.list_view);
+        mListView = (ScrollListviewDelete) view.findViewById(android.R.id.list);
         Bundle bundle = getArguments();
         if (null != bundle) {
             TOKEN = bundle.getString(DemoActivity.KEY_TOKEN);
@@ -131,7 +134,9 @@ public class LocDataListFragment extends BaseFragment {
         mSourceCursor = getActivity().getContentResolver().query(
                 PSBCCount.Uri.COMPANY_DATA_URI, null, selection,
                 selectionArgs, null);
-        mAdapter = new CreateViewAdapter(getActivity());
+//        mAdapter = new CreateViewAdapter(getActivity());
+        mAdapter = new DeleteAdapter(getActivity());
+//        mListView.setAdapter(mAdapter);
         mListView.setAdapter(mAdapter);
         mCenterLayout.setVisibility(View.VISIBLE);
         init(TOKEN);
@@ -141,7 +146,7 @@ public class LocDataListFragment extends BaseFragment {
         Log.d(TAG, "The TOKEN is [" + token + "]");
         if (mSourceCursor != null && mSourceCursor.moveToFirst()) {
             mCenterLayout.setVisibility(View.GONE);
-            mListView.setVisibility(View.VISIBLE);
+//            mListView.setVisibility(View.VISIBLE);
             try {
                 mAdapter.changeCursor(mSourceCursor);
                 mAdapter.notifyDataSetChanged();
