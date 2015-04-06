@@ -1,5 +1,6 @@
 package com.wp.demo.psbcdemo1.demo;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.IntentFilter;
 import android.database.ContentObserver;

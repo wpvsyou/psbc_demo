@@ -1,16 +1,23 @@
 package com.wp.demo.psbcdemo2;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
+import android.os.Handler;
 
 import com.wp.demo.psbc.count.PSBCCount;
 import com.wp.demo.psbc.count.PSBCCount.Company_data;
@@ -20,21 +27,49 @@ import com.wp.demo.psbcdemo2.tools.BaseFragmentActivity;
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class DemoActivity extends BaseFragmentActivity implements
-        DemoFragment.UserSelectLogin {
+        DemoFragment.UserSelectLogin, View.OnClickListener {
+
+    public interface UpdateButton{
+        void updateButton();
+    }
 
     public static final String TAG = "PSBC_case_demo_debug";
     public final static String KEY_TOKEN = "key_token";
+
+    private final static int MSG_BASE = 1;
+    private final static int MSG_SHOW_FOCUS_BUTTON = MSG_BASE << 1;
+    private final static int MSG_SHOW_UN_FOCUS = MSG_BASE << 2;
     LocDataListFragment mLocDataListFragment;
     static boolean HAS_LOGIN;
     static String OBJ;
+    Button mCameraButton;
+
+    final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_SHOW_FOCUS_BUTTON :
+                    mCameraButton.setBackgroundResource(R.drawable.camera_on_focus);
+                    break;
+                case MSG_SHOW_UN_FOCUS:
+                    mCameraButton.setBackgroundResource(R.drawable.camera_off_focus);
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         setContentView(R.layout.demo_activity_layout);
+        mCameraButton = (Button) findViewById(R.id.camera);
+        mCameraButton.setOnClickListener(this);
         if (null == savedInstanceState) {
             DemoFragment fragment = new DemoFragment();
             getSupportFragmentManager().popBackStack();
@@ -61,6 +96,20 @@ public class DemoActivity extends BaseFragmentActivity implements
                     .replace(R.id.fragment_container, mLocDataListFragment)
                     .commit();
         }
+        if (HAS_LOGIN) {
+            mCameraButton.setVisibility(View.VISIBLE);
+        }
+        showButton();
+    }
+
+    void showButton() {
+        mHandler.sendEmptyMessage(MSG_SHOW_FOCUS_BUTTON);
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mHandler.sendEmptyMessage(MSG_SHOW_UN_FOCUS);
+            }
+        }, 2000);
     }
 
     @Override
@@ -82,6 +131,8 @@ public class DemoActivity extends BaseFragmentActivity implements
                 .commit();
         mLocDataListFragment.updateToken(OBJ);
         mLocDataListFragment.updateView();
+        mCameraButton.setVisibility(View.VISIBLE);
+        showButton();
     }
 
     @Override
@@ -190,5 +241,15 @@ public class DemoActivity extends BaseFragmentActivity implements
     public void onBackHomeOnClick() {
         super.onBackHomeOnClick();
         this.finish();
+    }
+
+    @Override
+    public void onClick(View v) {
+        super.onClick(v);
+        if (v.getId() == R.id.camera) {
+            mHandler.sendEmptyMessage(MSG_SHOW_FOCUS_BUTTON);
+            Log.d(TAG, "openCamera");
+            openCamera();
+        }
     }
 }
