@@ -26,15 +26,6 @@
             android:name="com.wp.demo.psbcdemo1.demo.PSBCContentProvider"
             android:authorities="psbcdatabase"
             android:exported="true" />
-
-        <service
-            android:name="com.wp.demo.psbcdemo1.service.FTPService"
-            android:enabled="true"
-            android:exported="true" >
-            <intent-filter>
-                <action android:name="com.wp.demo.psbcdemo1.ACTION_BIND_FTP_SERVICES" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

@@ -1,41 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/actionbarLayoutId"
-    android:layout_width="wrap_content"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/setting_action_bar_back_button_bkg"
-    android:clickable="true"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    >
 
-    <ImageButton
-        android:id="@+id/menuBtnId2"
+    <LinearLayout
+        android:id="@+id/actionbarLayoutId"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/actionbar_back_bb"
-        android:scaleType="fitXY"
-        android:scaleY="0.1"
-        android:visibility="gone" />
-
-    <ImageButton
-        android:id="@+id/menuBtnId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="15.0dp"
-        android:layout_marginRight="5dip"
-        android:background="@drawable/setting_action_bar_back"
+        android:layout_height="match_parent"
+        android:background="@drawable/setting_action_bar_back_button_bkg"
         android:clickable="true"
-        android:contentDescription="@string/app_name"
-        android:onClick="onClick"
-        android:scaleType="fitCenter" />
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:focusableInTouchMode="true"
+       >
 
-    <TextView
-        android:id="@+id/setting_action_bar_title_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="5dip"
-        android:text="text"
-        android:textColor="@android:color/white" />
+        <ImageButton
+            android:id="@+id/menuBtnId2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/actionbar_back_bb"
+            android:scaleType="fitXY"
+            android:scaleY="0.1"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/menuBtnId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15.0dp"
+            android:layout_marginRight="5dip"
+            android:background="@drawable/setting_action_bar_back"
+            android:clickable="true"
+            android:contentDescription="@string/app_name"
+            android:onClick="onClick"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/setting_action_bar_title_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dip"
+            android:text="text"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
 </LinearLayout>

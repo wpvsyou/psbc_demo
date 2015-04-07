@@ -64,6 +64,7 @@
         </LinearLayout>
 
         <Button
+            android:visibility="gone"
             style="@style/PSBC_Button_bkg"
             android:text="上传"
             android:layout_marginRight="5dip"

@@ -98,6 +98,12 @@ public class LocDataFragment extends BaseFragment {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        BaseFragment.mCallback.showBtn();
+    }
+
     public void showEmptyText() {
         mCenterLayout.setVisibility(View.VISIBLE);
         mCenterTextView.setVisibility(View.VISIBLE);

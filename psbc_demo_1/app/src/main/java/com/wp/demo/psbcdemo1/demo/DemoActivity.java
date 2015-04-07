@@ -1,40 +1,96 @@
 package com.wp.demo.psbcdemo1.demo;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.wp.androidftpclient.FTPAndroidClientManager;
 import com.wp.demo.psbc.count.PSBCCount.Personnel;
 import com.wp.demo.psbc.count.PSBCCount.Uri;
-import com.wp.demo.psbcdemo1.bean.PSBCDataBean;
-import com.wp.demo.psbcdemo1.bean.PersonalBean;
-import com.wp.demo.psbcdemo1.bean.Personals;
 import com.wp.demo.psbcdemo1.psbccase.R;
 import com.wp.demo.psbcdemo1.tools.BaseFragment;
 import com.wp.demo.psbcdemo1.tools.BaseFragmentActivity;
-import com.wp.demo.psbcdemo1.tools.FTPAndroidClientManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import bean.PSBCDataBean;
+import bean.PersonalBean;
+import bean.Personals;
+
 public class DemoActivity extends BaseFragmentActivity implements
         DemoFragment.UserSelectLogin {
+
+    public interface HideRefreshBtn {
+        void hideBth();
+        void showBtn();
+    }
+
+    HideRefreshBtn mHideRefreshBtnCallback = new HideRefreshBtn() {
+        @Override
+        public void hideBth() {
+            mHandler.sendEmptyMessage(MSG_HIDE_BTN);
+        }
+
+        @Override
+        public void showBtn() {
+            fragmentType = 2;
+            mHandler.sendEmptyMessage(MSG_SHOW_BTN);
+        }
+    };
 
     private final static String TAG = "DemoActivity + FTPService";
     public final static String KEY_TOKEN = "key_token";
     ShowUserDataFragment mShowFragment;
     static boolean HAS_LOGIN;
     static String OBJ;
+    Toast mToast;
+
+    protected MenuItem refreshItem;
+
+    @SuppressLint("NewApi")
+    private void showRefreshAnimation(MenuItem item) {
+        hideRefreshAnimation();
+        refreshItem = item;
+        //这里使用一个ImageView设置成MenuItem的ActionView，这样我们就可以使用这个ImageView显示旋转动画了
+        ImageView refreshActionView = (ImageView) getLayoutInflater().inflate(R.layout.action_view, null);
+        refreshActionView.setImageResource(R.drawable.ic_action_refresh);
+        refreshItem.setActionView(refreshActionView);
+        //显示刷新动画
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.refresh);
+        animation.setRepeatMode(Animation.RESTART);
+        animation.setRepeatCount(Animation.INFINITE);
+        refreshActionView.startAnimation(animation);
+    }
+
+    @SuppressLint("NewApi")
+    public void hideRefreshAnimation() {
+        if (refreshItem != null) {
+            View view = refreshItem.getActionView();
+            if (view != null) {
+                view.clearAnimation();
+                refreshItem.setActionView(null);
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         setContentView(R.layout.demo_activity_layout);
+        BaseFragment.mCallback = mHideRefreshBtnCallback;
         if (null == savedInstanceState) {
             DemoFragment fragment = new DemoFragment();
             getSupportFragmentManager().beginTransaction()
@@ -69,26 +125,72 @@ public class DemoActivity extends BaseFragmentActivity implements
             @Override
             public void ftpDownloadCallback(int threadId, PSBCDataBean psbcDataBean) {
                 Log.d(TAG, "ftpDownloadCallback");
+                mHandler.sendEmptyMessage(MSG_DOWNLOAD_CALLBACK);
             }
 
             @Override
             public void connectSuccessful() {
                 Log.d(TAG, "connectSuccessful");
-                Toast.makeText(DemoActivity.this, "ftp service connect successful!", Toast.LENGTH_SHORT).show();
+                mHandler.sendEmptyMessage(MSG_CONNECT_SUCCESSFUL);
             }
 
             @Override
             public void ftpUploadCallback() {
                 Log.d(TAG, "ftpUploadCallback");
-                Toast.makeText(DemoActivity.this, "create successful!", Toast.LENGTH_SHORT).show();
+                mHandler.sendEmptyMessage(MSG_UPLOAD_CALLBACK);
             }
 
             @Override
             public void connectFailed(int errorCode) {
                 Log.d(TAG, "connectFailed");
-                Toast.makeText(DemoActivity.this, "ftp service connect failed!", Toast.LENGTH_SHORT).show();
+                mHandler.sendEmptyMessage(MSG_CONNECT_FAILED);
             }
         }, psbcDataBean);
+    }
+
+    private final static int MSG_BASE = 1;
+    private final static int MSG_DOWNLOAD_CALLBACK = MSG_BASE << 1;
+    private final static int MSG_CONNECT_SUCCESSFUL = MSG_BASE << 2;
+    private final static int MSG_UPLOAD_CALLBACK = MSG_BASE << 3;
+    private final static int MSG_CONNECT_FAILED = MSG_BASE << 4;
+    private final static int MSG_HIDE_BTN = MSG_BASE << 5;
+    private final static int MSG_SHOW_BTN = MSG_BASE << 6;
+
+    final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_DOWNLOAD_CALLBACK:
+                    showInfo("ftpDownloadCallback");
+                    break;
+                case MSG_CONNECT_SUCCESSFUL:
+                    showInfo("ftp service connect successful!");
+                    break;
+                case MSG_UPLOAD_CALLBACK:
+                    showInfo("create successful!");
+                    break;
+                case MSG_CONNECT_FAILED:
+                    showInfo("ftp service connect failed!");
+                    break;
+                case MSG_HIDE_BTN:
+                    hideRefreshAnimation();
+                    break;
+                case MSG_SHOW_BTN:
+                    invalidateOptionsMenu();
+                    break;
+            }
+        }
+    };
+
+    void showInfo(String text) {
+        if (mToast == null) {
+            mToast = Toast.makeText(DemoActivity.this, text, Toast.LENGTH_SHORT);
+        } else {
+            mToast.setText(text);
+            mToast.setDuration(Toast.LENGTH_SHORT);
+        }
+        mToast.show();
     }
 
     @Override
@@ -110,6 +212,10 @@ public class DemoActivity extends BaseFragmentActivity implements
         }
     }
 
+    static int BASE_FRAGMENT_TYPE = 1;
+    static int TYPE_SHOW_FRAGMENT = BASE_FRAGMENT_TYPE << 1;
+    int fragmentType = BASE_FRAGMENT_TYPE;
+
     @Override
     public void onSelectUser(String obj) {
         // TODO Auto-generated method stub
@@ -127,6 +233,8 @@ public class DemoActivity extends BaseFragmentActivity implements
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, mShowFragment).commit();
         mShowFragment.onUserChanged(OBJ, getContentResolver());
+        fragmentType = TYPE_SHOW_FRAGMENT;
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -153,11 +261,24 @@ public class DemoActivity extends BaseFragmentActivity implements
                                 android.R.anim.fade_out);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, fragment).commit();
+                fragmentType = BASE_FRAGMENT_TYPE;
             } else {
                 finish();
             }
+        } else if (id == R.id.refresh) {
+            showRefreshAnimation(item);
+            sendBroadcast(new Intent(RemoteDataFragment.ACTION_REFRESH_DATA));
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "onPrepareOptionsMenu " + fragmentType);
+        if (fragmentType != BASE_FRAGMENT_TYPE) {
+            menu.findItem(R.id.refresh).setVisible(true);
+        } else menu.findItem(R.id.refresh).setVisible(false);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override

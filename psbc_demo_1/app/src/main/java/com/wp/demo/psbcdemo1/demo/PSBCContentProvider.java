@@ -126,8 +126,10 @@ public class PSBCContentProvider extends ContentProvider {
 			} else {
 				selection = append;
 			}
-			count = db.delete(Tables.COMPANY_DATA, selection, selectionArgs);
-		} else {
+			count = db.delete(Tables.PERSONNEL, selection, selectionArgs);
+		} else if (i == COMPANY_DATA) {
+            count = db.delete(Tables.COMPANY_DATA, selection, selectionArgs);
+        } else {
 			throw new IllegalArgumentException("Unkwon uri: " + uri.toString());
 		}
 		notifyDataChange(uri, null);

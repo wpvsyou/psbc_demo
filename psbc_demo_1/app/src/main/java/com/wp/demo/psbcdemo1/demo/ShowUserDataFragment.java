@@ -1,8 +1,6 @@
 package com.wp.demo.psbcdemo1.demo;
 
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
-import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -12,19 +10,21 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
-import com.google.gson.Gson;
+import com.wp.demo.psbc.count.PSBCCount.Company_data;
+import com.wp.demo.psbc.count.PSBCCount.Uri;
 import com.wp.demo.psbcdemo1.psbccase.R;
-import com.wp.demo.psbcdemo1.bean.BeanCompanyData;
 import com.wp.demo.psbcdemo1.tools.BaseFragment;
-import com.wp.demo.psbc.count.PSBCCount.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import bean.BeanCompanyData;
 
 public class ShowUserDataFragment extends BaseFragment {
 
@@ -97,6 +97,23 @@ public class ShowUserDataFragment extends BaseFragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        BaseFragment.mCallback.showBtn();
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+    }
+
+    @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onViewCreated(view, savedInstanceState);
@@ -122,6 +139,7 @@ public class ShowUserDataFragment extends BaseFragment {
         bundle.putString(DemoActivity.KEY_TOKEN, mToken);
         mLocDataFragment.setArguments(bundle);
         mRemoteDataFragment = new RemoteDataFragment();
+        mRemoteDataFragment.setCallback(mCallback);
         Bundle bundle1 = new Bundle();
         bundle1.putString(DemoActivity.KEY_TOKEN, mToken);
         mRemoteDataFragment.setArguments(bundle1);
@@ -136,6 +154,7 @@ public class ShowUserDataFragment extends BaseFragment {
         mViewPager.setCurrentItem(LOC_DATA_TITLE);
         selectItemToShowData(LOC_DATA_TITLE);
         mViewPager.setAdapter(mAdapter);
+        Log.d(TAG, "updateCompanyData check the token -> " + TokenHelper.getInstance().getToken());
         mLocDataLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -185,26 +204,6 @@ public class ShowUserDataFragment extends BaseFragment {
             default:
                 break;
         }
-    }
-
-    protected BeanCompanyData getLocData(String token) {
-        BeanCompanyData locData = new BeanCompanyData();
-        String select = Company_data.ID + "=?";
-        String[] args = new String[]{token};
-        Cursor cursor = getActivity().getContentResolver().query(
-                Uri.COMPANY_DATA_URI, null, select, args, null);
-        if (null != cursor) {
-            try {
-                String json = cursor.getString(cursor
-                        .getColumnIndex(Company_data.DATA_TITLE));
-                locData = new Gson().fromJson(json, BeanCompanyData.class);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                cursor.close();
-            }
-        }
-        return locData;
     }
 
     public void onUserChanged(String token, ContentResolver contentResolver) {

@@ -135,7 +135,18 @@ public class LocDataListFragment extends BaseFragment implements ScrollListviewD
                 PSBCCount.Uri.COMPANY_DATA_URI, null, selection,
                 selectionArgs, null);
 //        mAdapter = new CreateViewAdapter(getActivity());
-        mAdapter = new DeleteAdapter(getActivity());
+        mAdapter = new DeleteAdapter(getActivity(), new DeleteAdapter.NotifyUpdateOrDelete() {
+            @Override
+            public void onDataChanged() {
+                String selection = PSBCCount.Company_data.ID + "=?";
+                String[] selectionArgs = new String[]{TOKEN};
+                Cursor cursor = getActivity().getContentResolver().query(
+                        PSBCCount.Uri.COMPANY_DATA_URI, null, selection,
+                        selectionArgs, null);
+                mAdapter.changeCursor(cursor);
+                mAdapter.notifyDataSetChanged();
+            }
+        });
 //        mListView.setAdapter(mAdapter);
         mListView.setAdapter(mAdapter);
         mCenterLayout.setVisibility(View.VISIBLE);

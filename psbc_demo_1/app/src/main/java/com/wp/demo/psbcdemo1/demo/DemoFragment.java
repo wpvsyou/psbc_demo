@@ -5,6 +5,8 @@ import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,17 +16,19 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.wp.demo.psbcdemo1.bean.PSBCDataBean;
-import com.wp.demo.psbcdemo1.bean.PersonalBean;
-import com.wp.demo.psbcdemo1.bean.Personals;
+import com.wp.androidftpclient.FTPAndroidClientManager;
+import com.wp.demo.psbc.count.PSBCCount;
 import com.wp.demo.psbcdemo1.psbccase.R;
 import com.wp.demo.psbcdemo1.tools.BaseFragment;
 import com.wp.demo.psbcdemo1.tools.EditTextWithDelete;
-import com.wp.demo.psbcdemo1.tools.FTPAndroidClientManager;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import bean.PSBCDataBean;
+import bean.PersonalBean;
+import bean.Personals;
 
 public class DemoFragment extends BaseFragment implements OnClickListener {
 
@@ -121,29 +125,35 @@ public class DemoFragment extends BaseFragment implements OnClickListener {
                                             Log.d(TAG, "echo all --> " + mUsername.getText() + " | " + mPassword.getText());
                                             if (TextUtils.equals(mUsername.getText(), p.getUserName())
                                                     && TextUtils.equals(mPassword.getText(), p.getPassword())) {
-                                                Log.d(TAG, "Get username and password right! enter!");
-                                                mCallbackLogin.onSelectUser(p.getId());
                                                 dismissProgress();
+//                                                if (p.getLevel() > PSBCCount.Login.LEVEL_FREEZE) {
+//                                                    mHandler.sendEmptyMessage(MSG_BASE_FREEZE);
+//                                                } else {
+                                                    Log.d(TAG, "Get username and password right! enter!");
+                                                    mHandler.sendEmptyMessage(MSG_TIME_OUE);
+
+                                                    mCallbackLogin.onSelectUser(p.getId());
+//                                                }
                                                 break;
                                             }
                                             dismissProgress();
                                             Log.d(TAG, "username or password error!");
-                                            Toast.makeText(getActivity(), "username or password error!", Toast.LENGTH_SHORT).show();
+                                            mHandler.sendEmptyMessage(MSG_BASE_ERROR_PASSWORD);
                                         }
                                     } else {
                                         dismissProgress();
                                         Log.d(TAG, "PersonalBean list is empty!");
-                                        Toast.makeText(getActivity(), "un_know user or user un exits!", Toast.LENGTH_SHORT).show();
+                                        mHandler.sendEmptyMessage(MSG_BASE_UN_KNOX_USER);
                                     }
                                 } else {
                                     dismissProgress();
                                     Log.d(TAG, "personals is empty!");
-                                    Toast.makeText(getActivity(), "un_know user or user un exits!", Toast.LENGTH_SHORT).show();
+                                    mHandler.sendEmptyMessage(MSG_BASE_UN_KNOX_USER);
                                 }
                             } else {
                                 dismissProgress();
                                 Log.d(TAG, "psbcDataBean is empty!");
-                                Toast.makeText(getActivity(), "un_know user or user un exits!", Toast.LENGTH_SHORT).show();
+                                mHandler.sendEmptyMessage(MSG_BASE_UN_KNOX_USER);
                             }
                         }
 
@@ -160,12 +170,54 @@ public class DemoFragment extends BaseFragment implements OnClickListener {
                         @Override
                         public void connectFailed(int errorCode) {
                             Log.d(TAG, " DemoFragment, connectFailed");
-                            Toast.makeText(getActivity(),
-                                    "Error : Time out, please check your network!", Toast.LENGTH_SHORT).show();
+                            mHandler.sendEmptyMessage(MSG_TIME_OUE);
                         }
                     });
         }
     }
+
+    private final static int MSG_BASE = 1;
+    private final static int MSG_TIME_OUE = MSG_BASE << 1;
+    private final static int MSG_BASE_UN_KNOX_USER = MSG_BASE << 2;
+    private final static int MSG_BASE_ERROR_PASSWORD = MSG_BASE << 3;
+    private final static int MSG_BASE_FREEZE = MSG_BASE << 4;
+    private final static int MSG_LOGIN_SUCCESSFUL = MSG_BASE << 5;
+
+    final Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case MSG_TIME_OUE:
+                    showInfo("Error : Time out, please check your network!");
+                    break;
+                case MSG_BASE_UN_KNOX_USER:
+                    showInfo("Un_know user or user un exits!");
+                    break;
+                case MSG_BASE_ERROR_PASSWORD:
+                    showInfo("Username or password error!");
+                    break;
+                case MSG_BASE_FREEZE:
+                    showInfo("Account be freeze!");
+                    break;
+                case MSG_LOGIN_SUCCESSFUL:
+                    showInfo("Login successful!");
+                    break;
+            }
+        }
+    };
+
+    private Toast mToast;
+    void showInfo(String text) {
+        if (mToast == null) {
+            mToast = Toast.makeText(getActivity(), text, Toast.LENGTH_SHORT);
+        } else {
+            mToast.setText(text);
+            mToast.setDuration(Toast.LENGTH_SHORT);
+        }
+        mToast.show();
+    }
+
 //    protected void checkLogin() {
 //        if (null == mUsername.getText()
 //                || filterTransferCharacter(mUsername.getText())) {

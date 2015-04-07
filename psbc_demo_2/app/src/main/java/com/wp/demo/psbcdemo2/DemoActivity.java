@@ -1,14 +1,12 @@
 package com.wp.demo.psbcdemo2;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -17,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import android.os.Handler;
 
 import com.wp.demo.psbc.count.PSBCCount;
 import com.wp.demo.psbc.count.PSBCCount.Company_data;
@@ -32,10 +29,6 @@ import java.util.TimerTask;
 
 public class DemoActivity extends BaseFragmentActivity implements
         DemoFragment.UserSelectLogin, View.OnClickListener {
-
-    public interface UpdateButton{
-        void updateButton();
-    }
 
     public static final String TAG = "PSBC_case_demo_debug";
     public final static String KEY_TOKEN = "key_token";

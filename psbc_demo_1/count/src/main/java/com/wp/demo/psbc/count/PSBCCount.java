@@ -37,4 +37,9 @@ public class PSBCCount {
         public static final android.net.Uri PERSONNEL_URI = android.net.Uri.parse("content://"
                 + DATABASE_NAME + "/" + Tables.PERSONNEL);
     }
+
+    public interface Login{
+        public static final int LEVEL_UNFREEZE = 0;
+        public static final int LEVEL_FREEZE = 1;
+    }
 }
