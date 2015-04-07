@@ -28,19 +28,11 @@
             android:background="@color/theme_color" />
     </LinearLayout>
 
-    <!--<ListView-->
-        <!--android:paddingRight="5dip"-->
-        <!--android:paddingLeft="5dip"-->
-        <!--android:visibility="gone"-->
-        <!--android:id="@+id/list_view"-->
-        <!--android:dividerHeight="1dip"-->
-        <!--android:divider="@color/theme_color"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent" />-->
-
     <com.wp.demo.psbcdemo2.scrollerdelete_master.ScrollListviewDelete
         android:id="@android:id/list"
         android:layout_width="match_parent"
+        android:dividerHeight="1dip"
+        android:divider="@color/theme_color"
         android:layout_height="match_parent" />
 
 </LinearLayout>
