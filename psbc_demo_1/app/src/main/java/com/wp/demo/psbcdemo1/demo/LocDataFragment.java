@@ -33,7 +33,7 @@ import java.util.Date;
 /**
  * Created by wangpeng on 15-3-21.
  */
-public class LocDataFragment extends BaseFragment {
+public class LocDataFragment extends BaseFragment{
 
     TextView mCenterTextView;
     LinearLayout mCenterLayout;
@@ -102,6 +102,7 @@ public class LocDataFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         BaseFragment.mCallback.showBtn();
+        Log.d(TAG, "LocData on resume!");
     }
 
     public void showEmptyText() {

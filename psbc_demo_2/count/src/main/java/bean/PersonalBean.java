@@ -8,7 +8,7 @@ public class PersonalBean {
     private String user_name;
     private String password;
     private String validity;
-    private String level;
+    private Integer level;
     private String data_3;
 
     public void setId(String id) {
@@ -43,11 +43,11 @@ public class PersonalBean {
         return this.validity;
     }
 
-    public void setLevel(String level) {
+    public void setLevel(int level) {
         this.level = level;
     }
 
-    public String getLevel() {
+    public int getLevel() {
         return this.level;
     }
 

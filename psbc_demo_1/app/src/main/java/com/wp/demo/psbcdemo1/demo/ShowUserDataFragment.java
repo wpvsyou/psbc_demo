@@ -106,6 +106,7 @@ public class ShowUserDataFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         BaseFragment.mCallback.showBtn();
+        Log.d(TAG, " show user on resume onSelectUser");
     }
 
     @Override
@@ -132,7 +133,6 @@ public class ShowUserDataFragment extends BaseFragment {
         getActivity().getContentResolver()
                 .registerContentObserver(Uri.COMPANY_DATA_URI,
                         true, dataChangedObserver);
-
         Log.d(TAG + " ShowUserDataFragment", "new fragment instance the current token is [" + mToken + "]");
         mLocDataFragment = new LocDataFragment();
         Bundle bundle = new Bundle();

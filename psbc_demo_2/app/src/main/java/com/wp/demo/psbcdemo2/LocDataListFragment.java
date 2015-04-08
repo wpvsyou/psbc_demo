@@ -54,11 +54,12 @@ public class LocDataListFragment extends BaseFragment implements ScrollListviewD
             if (msg.what == MSG_DATA_CHANGED) {
                 Log.d(TAG, "MSG_DATA_CHANGED");
                 if (null != mAdapter) {
-                    String selection = PSBCCount.Personnel.ID + "=?";
-                    String[] selectionArgs = new String[]{TOKEN};
+                    String selection = PSBCCount.Company_data.ID + "=? or " + PSBCCount.Company_data.ID + "=?";
+                    String[] selectionArgs = new String[]{DemoActivity.getKeyToken(), DemoActivity.PUBLIC_KEY};
+                    Log.d(TAG, "check the token [" + DemoActivity.getKeyToken() + "]");
                     Log.d(TAG, "observer : check the uri --> " + PSBCCount.Uri.COMPANY_DATA_URI);
                     Cursor cursor = mContentResolver.
-                            query(PSBCCount.Uri.COMPANY_DATA_URI, null, selection, selectionArgs, null);
+                            query(PSBCCount.Uri_local.LOCAL_DATA_URI, null, selection, selectionArgs, null);
                     if (null != cursor) {
                         mCenterLayout.setVisibility(View.GONE);
                         Log.d(TAG, "observer : the cursor un empty! cursor --> " + cursor.toString());
@@ -110,12 +111,13 @@ public class LocDataListFragment extends BaseFragment implements ScrollListviewD
         } else Log.d(TAG, "Get arguments was empty!");
         DataChangedObserver observer = new DataChangedObserver(mDataChangedHandler);
         getActivity().getContentResolver().registerContentObserver(PSBCCount.Uri.PERSONNEL_URI, true, observer);
-        getActivity().getContentResolver().registerContentObserver(PSBCCount.Uri.COMPANY_DATA_URI, true, observer);
+        getActivity().getContentResolver().registerContentObserver(PSBCCount.Uri_local.LOCAL_DATA_URI, true, observer);
 
-        String selection = PSBCCount.Company_data.ID + "=?";
-        String[] selectionArgs = new String[]{TOKEN};
+        String selection = PSBCCount.Company_data.ID + "=? or " + PSBCCount.Company_data.ID + "=?";
+        Log.d(TAG, "check the token [" + DemoActivity.getKeyToken() + "]");
+        String[] selectionArgs = new String[]{DemoActivity.getKeyToken(), DemoActivity.PUBLIC_KEY};
         mSourceCursor = getActivity().getContentResolver().query(
-                PSBCCount.Uri.COMPANY_DATA_URI, null, selection,
+                PSBCCount.Uri_local.LOCAL_DATA_URI, null, selection,
                 selectionArgs, null);
         mAdapter = new DeleteAdapter(getActivity(), new DeleteAdapter.NotifyUpdateOrDelete() {
             @Override

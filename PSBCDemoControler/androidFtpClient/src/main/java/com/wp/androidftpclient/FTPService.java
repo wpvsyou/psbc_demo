@@ -117,7 +117,9 @@ public class FTPService extends Service {
             String json;
             try {
                 json = inputStream2String(mFTPClient.retrieveFileStream(FTPAndroidClientManager.PERSONAL_PATH));
-                mPSBCDataBean = new Gson().fromJson(json, PSBCDataBean.class);
+                if (!TextUtils.isEmpty(json)) {
+                    mPSBCDataBean = new Gson().fromJson(json, PSBCDataBean.class);
+                } else Log.d(TAG, "The download thread, json was empty!");
                 Log.d(TAG, "get input stream from ftp was done!");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -319,6 +321,9 @@ public class FTPService extends Service {
     }
 
     public static String inputStream2String(InputStream is) throws IOException {
+        if (null == is) {
+            return "";
+        }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int i = -1;
         while ((i = is.read()) != -1) {

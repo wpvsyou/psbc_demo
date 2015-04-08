@@ -70,4 +70,29 @@
             android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_marginTop="10dip"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/lock_btn"
+            style="@style/PSBC_Button_bkg"
+            android:text="Lock this client"
+            android:layout_marginRight="5dip"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/unlock_btn"
+            style="@style/PSBC_Button_bkg"
+            android:text="Unlock this client"
+            android:layout_marginLeft="5dip"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
 </LinearLayout>

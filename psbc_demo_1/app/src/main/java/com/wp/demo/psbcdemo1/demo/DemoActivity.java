@@ -108,44 +108,44 @@ public class DemoActivity extends BaseFragmentActivity implements
         values1.put(Personnel.ID, "wangpeng");
         getContentResolver().insert(Uri.PERSONNEL_URI, values1);
 
-        PSBCDataBean psbcDataBean = new PSBCDataBean();
-        PersonalBean personalBean = new PersonalBean();
-        personalBean.setUserName("pekall");
-        personalBean.setPassword("pekall");
-        personalBean.setId("pekall");
-        List<PersonalBean> personalBeanList = new ArrayList<>();
-        personalBeanList.add(personalBean);
-        Personals personals = new Personals();
-        personals.setList(personalBeanList);
-        psbcDataBean.setPersonalBean(personals);
+//        PSBCDataBean psbcDataBean = new PSBCDataBean();
+//        PersonalBean personalBean = new PersonalBean();
+//        personalBean.setUserName("pekall");
+//        personalBean.setPassword("pekall");
+//        personalBean.setId("pekall");
+//        List<PersonalBean> personalBeanList = new ArrayList<>();
+//        personalBeanList.add(personalBean);
+//        Personals personals = new Personals();
+//        personals.setList(personalBeanList);
+//        psbcDataBean.setPersonalBean(personals);
 
         startService(new Intent("com.wp.demo.psbcdemo1.ACTION_BIND_FTP_SERVICES"));
 
-        FTPAndroidClientManager.getInstance(this).updateFile(1, FTPAndroidClientManager.PERSONAL_PATH, new FTPAndroidClientManager.FTPThreadCallback() {
-            @Override
-            public void ftpDownloadCallback(int threadId, PSBCDataBean psbcDataBean) {
-                Log.d(TAG, "ftpDownloadCallback");
-                mHandler.sendEmptyMessage(MSG_DOWNLOAD_CALLBACK);
-            }
-
-            @Override
-            public void connectSuccessful() {
-                Log.d(TAG, "connectSuccessful");
-                mHandler.sendEmptyMessage(MSG_CONNECT_SUCCESSFUL);
-            }
-
-            @Override
-            public void ftpUploadCallback() {
-                Log.d(TAG, "ftpUploadCallback");
-                mHandler.sendEmptyMessage(MSG_UPLOAD_CALLBACK);
-            }
-
-            @Override
-            public void connectFailed(int errorCode) {
-                Log.d(TAG, "connectFailed");
-                mHandler.sendEmptyMessage(MSG_CONNECT_FAILED);
-            }
-        }, psbcDataBean);
+//        FTPAndroidClientManager.getInstance(this).updateFile(1, FTPAndroidClientManager.PERSONAL_PATH, new FTPAndroidClientManager.FTPThreadCallback() {
+//            @Override
+//            public void ftpDownloadCallback(int threadId, PSBCDataBean psbcDataBean) {
+//                Log.d(TAG, "ftpDownloadCallback");
+//                mHandler.sendEmptyMessage(MSG_DOWNLOAD_CALLBACK);
+//            }
+//
+//            @Override
+//            public void connectSuccessful() {
+//                Log.d(TAG, "connectSuccessful");
+//                mHandler.sendEmptyMessage(MSG_CONNECT_SUCCESSFUL);
+//            }
+//
+//            @Override
+//            public void ftpUploadCallback() {
+//                Log.d(TAG, "ftpUploadCallback");
+//                mHandler.sendEmptyMessage(MSG_UPLOAD_CALLBACK);
+//            }
+//
+//            @Override
+//            public void connectFailed(int errorCode) {
+//                Log.d(TAG, "connectFailed");
+//                mHandler.sendEmptyMessage(MSG_CONNECT_FAILED);
+//            }
+//        }, psbcDataBean);
     }
 
     private final static int MSG_BASE = 1;
@@ -204,7 +204,6 @@ public class DemoActivity extends BaseFragmentActivity implements
                 bundle.putString(KEY_TOKEN, OBJ);
                 mShowFragment.setArguments(bundle);
             }
-            getSupportFragmentManager().popBackStack();
             getSupportFragmentManager().beginTransaction().setCustomAnimations(
                     android.R.anim.fade_in, android.R.anim.fade_out);
             getSupportFragmentManager().beginTransaction()
@@ -220,6 +219,7 @@ public class DemoActivity extends BaseFragmentActivity implements
     public void onSelectUser(String obj) {
         // TODO Auto-generated method stub
         TokenHelper.getInstance().setToken(obj);
+        Log.d(TAG, "activity on resume onSelectUser");
         HAS_LOGIN = true;
         OBJ = obj;
         mShowFragment = new ShowUserDataFragment();
@@ -227,7 +227,6 @@ public class DemoActivity extends BaseFragmentActivity implements
         bundle.putString(KEY_TOKEN, OBJ);
         mShowFragment.setArguments(bundle);
         mShowFragment.setToken(OBJ);
-        getSupportFragmentManager().popBackStack();
         getSupportFragmentManager().beginTransaction().setCustomAnimations(
                 android.R.anim.fade_in, android.R.anim.fade_out);
         getSupportFragmentManager().beginTransaction()
@@ -262,6 +261,7 @@ public class DemoActivity extends BaseFragmentActivity implements
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, fragment).commit();
                 fragmentType = BASE_FRAGMENT_TYPE;
+                this.finish();
             } else {
                 finish();
             }

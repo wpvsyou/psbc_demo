@@ -9,7 +9,7 @@
     <string name="enter_password">Please enter password : </string>
     <string name="enter_btn">Enter</string>
     <string name="exit_btn">Exit</string>
-    <string name="title_loc_data">Location Data</string>
+    <string name="title_loc_data">Local Data</string>
     <string name="title_remote_data">Remote Data</string>
     <string name="center_text">No Data</string>
     <string name="no_loc_data_text">No location data</string>

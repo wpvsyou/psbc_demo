@@ -38,7 +38,7 @@ import bean.PSBCDataBean;
 /**
  * Created by wangpeng on 15-3-21.
  */
-public class RemoteDataFragment extends BaseFragment {
+public class RemoteDataFragment extends BaseFragment{
 
     private final static String TAG = "PSBC_case_demo_debug_RemoteDataFragment";
     TextView mCenterTextView;
@@ -61,6 +61,13 @@ public class RemoteDataFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         BaseFragment.mCallback.showBtn();
+        mAdapter.upgradeData(mList);
+        mAdapter.notifyDataSetChanged();
+        if (mList.size() <= 0) {
+            mListView.setVisibility(View.GONE);
+            mCenterLayout.setVisibility(View.VISIBLE);
+        }
+        Log.d(TAG, "RemoteDataFragment on resume!");
     }
 
     @Override

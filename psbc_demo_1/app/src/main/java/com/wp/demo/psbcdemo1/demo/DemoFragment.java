@@ -126,14 +126,14 @@ public class DemoFragment extends BaseFragment implements OnClickListener {
                                             if (TextUtils.equals(mUsername.getText(), p.getUserName())
                                                     && TextUtils.equals(mPassword.getText(), p.getPassword())) {
                                                 dismissProgress();
-//                                                if (p.getLevel() > PSBCCount.Login.LEVEL_FREEZE) {
-//                                                    mHandler.sendEmptyMessage(MSG_BASE_FREEZE);
-//                                                } else {
-                                                    Log.d(TAG, "Get username and password right! enter!");
-                                                    mHandler.sendEmptyMessage(MSG_TIME_OUE);
-
+                                                if (p.getLevel() > PSBCCount.Login.LEVEL_UNFREEZE) {
+                                                    mHandler.sendEmptyMessage(MSG_BASE_FREEZE);
+                                                } else {
+                                                    Log.d(TAG, "Get username and pass1word right! enter!");
+                                                    mHandler.sendEmptyMessage(MSG_LOGIN_SUCCESSFUL);
+                                                    TokenHelper.getInstance().setToken(p.getId());
                                                     mCallbackLogin.onSelectUser(p.getId());
-//                                                }
+                                                }
                                                 break;
                                             }
                                             dismissProgress();

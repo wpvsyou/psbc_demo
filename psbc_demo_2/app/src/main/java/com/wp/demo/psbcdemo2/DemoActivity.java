@@ -1,14 +1,20 @@
 package com.wp.demo.psbcdemo2;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,23 +36,109 @@ import java.util.TimerTask;
 public class DemoActivity extends BaseFragmentActivity implements
         DemoFragment.UserSelectLogin, View.OnClickListener {
 
+    public final static String ACTION_TO_LOGOUT = "com.wp.psbc.demo2.ACTION_TO_LOGOUT";
+    public final static String ACTION_TO_LUCK = "com.wp.psbc,demo2.ACTION_TO_LUCK";
+    public final static String LOCK_CLIENT = "lock_client";
+
     public static final String TAG = "PSBC_case_demo_debug";
     public final static String KEY_TOKEN = "key_token";
+    public final static String HAS_LOGIN = "has_login";
+    public final static String PUBLIC_KEY = "publickey";
 
     private final static int MSG_BASE = 1;
     private final static int MSG_SHOW_FOCUS_BUTTON = MSG_BASE << 1;
     private final static int MSG_SHOW_UN_FOCUS = MSG_BASE << 2;
+    private final static int COMMAND_LOCK = MSG_BASE << 3;
+
+    private final static int COMMAND_UN_LOCK = MSG_BASE << 4;
     LocDataListFragment mLocDataListFragment;
-    static boolean HAS_LOGIN;
     static String OBJ;
     Button mCameraButton;
+    CommandLockObserver mCommandLockObserver;
+    CommandUnLockObserver mCommandUnlockObserver;
+    static SharedPreferences mPreferences;
+    static SharedPreferences.Editor mEditor;
+
+    private final static int LOCK = 1;
+    private final static int UNLOCK = 0;
+
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ACTION_TO_LOGOUT)) {
+                mEditor.putBoolean(HAS_LOGIN, false).commit();
+                DemoFragment fragment = new DemoFragment();
+                getSupportFragmentManager().popBackStack();
+                getSupportFragmentManager().beginTransaction()
+                        .setCustomAnimations(android.R.anim.fade_in,
+                                android.R.anim.fade_out);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, fragment).commit();
+                setKeyToken("");
+            }
+        }
+    };
+
+    class CommandLockObserver extends ContentObserver {
+
+        Handler mHandler;
+        /**
+         * Creates a content observer.
+         *
+         * @param handler The handler to run {@link #onChange} on, or null if none.
+         */
+        public CommandLockObserver(Handler handler) {
+            super(handler);
+            mHandler = handler;
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            mHandler.sendEmptyMessage(COMMAND_LOCK);
+        }
+    }
+
+    class CommandUnLockObserver extends ContentObserver {
+
+        Handler mHandler;
+        /**
+         * Creates a content observer.
+         *
+         * @param handler The handler to run {@link #onChange} on, or null if none.
+         */
+        public CommandUnLockObserver(Handler handler) {
+            super(handler);
+            mHandler = handler;
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            mHandler.sendEmptyMessage(COMMAND_UN_LOCK);
+        }
+    }
+
+    final Handler mCommandHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == COMMAND_LOCK) {
+                mEditor.putInt(LOCK_CLIENT, LOCK).commit();
+                Toast.makeText(DemoActivity.this, "Sorry , your client was locked!!! ", Toast.LENGTH_LONG).show();
+                DemoActivity.this.finish();
+            } else if (msg.what == COMMAND_UN_LOCK) {
+                mEditor.putInt(LOCK_CLIENT, UNLOCK).commit();
+            }
+        }
+    };
 
     final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case MSG_SHOW_FOCUS_BUTTON :
+                case MSG_SHOW_FOCUS_BUTTON:
                     mCameraButton.setBackgroundResource(R.drawable.camera_on_focus);
                     break;
                 case MSG_SHOW_UN_FOCUS:
@@ -69,30 +161,45 @@ public class DemoActivity extends BaseFragmentActivity implements
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment_container, fragment).commit();
         }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_TO_LOGOUT);
+        filter.addAction(ACTION_TO_LUCK);
+        registerReceiver(mReceiver, filter);
+        mCommandLockObserver = new CommandLockObserver(mCommandHandler);
+        getContentResolver().registerContentObserver(PSBCCount.Uri.COMMAND_LOCK, true, mCommandLockObserver);
+        mCommandUnlockObserver = new CommandUnLockObserver(mCommandHandler);
+        getContentResolver().registerContentObserver(PSBCCount.Uri.COMMAND_UN_LOCK, true, mCommandUnlockObserver);
+        mPreferences = getSharedPreferences("psbc_demo", Context.MODE_PRIVATE);
+        mEditor = mPreferences.edit();
     }
 
     @Override
     protected void onResume() {
         // TODO Auto-generated method stub
         super.onResume();
-        if (HAS_LOGIN) {
-            if (null == mLocDataListFragment) {
-                mLocDataListFragment = new LocDataListFragment();
-                Bundle bundle = new Bundle();
-                bundle.putString(KEY_TOKEN, OBJ);
-                mLocDataListFragment.setArguments(bundle);
-            } else mLocDataListFragment.updateToken(OBJ);
-            getSupportFragmentManager().popBackStack();
-            getSupportFragmentManager().beginTransaction().setCustomAnimations(
-                    android.R.anim.fade_in, android.R.anim.fade_out);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, mLocDataListFragment)
-                    .commit();
+        if (mPreferences.getInt(LOCK_CLIENT, -1) > 0) {
+            Toast.makeText(this, "Sorry , your client was locked!!! ", Toast.LENGTH_LONG).show();
+            this.finish();
+        } else {
+            if (mPreferences.getBoolean(HAS_LOGIN, false)) {
+                if (null == mLocDataListFragment) {
+                    mLocDataListFragment = new LocDataListFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putString(KEY_TOKEN, OBJ);
+                    mLocDataListFragment.setArguments(bundle);
+                } else mLocDataListFragment.updateToken(OBJ);
+                getSupportFragmentManager().popBackStack();
+                getSupportFragmentManager().beginTransaction().setCustomAnimations(
+                        android.R.anim.fade_in, android.R.anim.fade_out);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, mLocDataListFragment)
+                        .commit();
+            }
+            if (mPreferences.getBoolean(HAS_LOGIN, false)) {
+                mCameraButton.setVisibility(View.VISIBLE);
+            }
+            showButton();
         }
-        if (HAS_LOGIN) {
-            mCameraButton.setVisibility(View.VISIBLE);
-        }
-        showButton();
     }
 
     void showButton() {
@@ -108,7 +215,7 @@ public class DemoActivity extends BaseFragmentActivity implements
     @Override
     public void onSelectUser(String obj) {
         // TODO Auto-generated method stub
-        HAS_LOGIN = true;
+        mEditor.putBoolean(HAS_LOGIN, true).commit();
         Log.d(TAG, "Check the token in the DemoActivity callback method! [" + obj + "]");
         OBJ = obj;
         Log.d(TAG, "The mLocDataListFragment is empty!");
@@ -145,7 +252,7 @@ public class DemoActivity extends BaseFragmentActivity implements
             BaseFragment demoFragment = (BaseFragment) getSupportFragmentManager()
                     .findFragmentById(R.id.fragment_container);
             if (null != demoFragment && !(demoFragment instanceof DemoFragment)) {
-                HAS_LOGIN = false;
+                mEditor.putBoolean(HAS_LOGIN, false).commit();
                 DemoFragment fragment = new DemoFragment();
                 getSupportFragmentManager().popBackStack();
                 getSupportFragmentManager().beginTransaction()
@@ -156,13 +263,9 @@ public class DemoActivity extends BaseFragmentActivity implements
             } else {
                 finish();
             }
+            setKeyToken(PUBLIC_KEY);
         } else if (id == R.id.create_data) {
-            if (HAS_LOGIN) {
-                openCamera();
-            } else {
-                Toast.makeText(DemoActivity.this, "Please login first!",
-                        Toast.LENGTH_SHORT).show();
-            }
+            openCamera();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -189,15 +292,26 @@ public class DemoActivity extends BaseFragmentActivity implements
             final ByteArrayOutputStream thumbnailOs = new ByteArrayOutputStream();
             thumbnail.compress(Bitmap.CompressFormat.PNG, 100, thumbnailOs);
             ContentValues values = new ContentValues();
-            values.put(Company_data.ID, OBJ);
+            values.put(Company_data.ID, DemoActivity.getKeyToken());
             values.put(Company_data.DATA_TITLE, title);
             values.put(Company_data.DATA_INFORMATION, information);
             values.put(Company_data.DATA_IMAGE, os.toByteArray());
             values.put(Company_data.DATA_THUMBNAIL, thumbnailOs.toByteArray());
-            if (getContentResolver().insert(PSBCCount.Uri.COMPANY_DATA_URI, values) != null) {
-                Log.d(TAG, "Insert image was done!");
+            if (!TextUtils.equals(getKeyToken(), PUBLIC_KEY)) {
+                try {
+                    if (getContentResolver().insert(PSBCCount.Uri.COMPANY_DATA_URI, values) != null) {
+                        Log.d(TAG, "Insert image was done!");
+                    } else {
+                        Log.d(TAG, "Error insert image!!!");
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "Error  :  " + e);
+                }
+            }
+            if (getContentResolver().insert(PSBCCount.Uri_local.LOCAL_DATA_URI, values) != null) {
+                Log.d(TAG, "Insert image in local data base was done!");
             } else {
-                Log.d(TAG, "Error insert image!!!");
+                Log.d(TAG, "Error insert in local data base image!!!");
             }
         }
     }
@@ -244,5 +358,19 @@ public class DemoActivity extends BaseFragmentActivity implements
             Log.d(TAG, "openCamera");
             openCamera();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+    }
+
+    public static void setKeyToken(String token) {
+        mEditor.putString(KEY_TOKEN, token).commit();
+    }
+
+    public static String getKeyToken() {
+        return mPreferences.getString(KEY_TOKEN, PUBLIC_KEY);
     }
 }

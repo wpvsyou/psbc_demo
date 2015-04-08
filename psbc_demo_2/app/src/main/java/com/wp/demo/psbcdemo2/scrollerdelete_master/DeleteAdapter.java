@@ -3,6 +3,7 @@ package com.wp.demo.psbcdemo2.scrollerdelete_master;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -23,6 +24,7 @@ import android.widget.Toast;
 
 import com.wp.androidftpclient.FTPAndroidClientManager;
 import com.wp.demo.psbc.count.PSBCCount;
+import com.wp.demo.psbcdemo2.DemoActivity;
 import com.wp.demo.psbcdemo2.R;
 import com.wp.demo.psbcdemo2.tools.GroupingListAdapter;
 
@@ -72,14 +74,14 @@ public class DeleteAdapter extends GroupingListAdapter {
             holder.imageView.setImageDrawable(context.getResources()
                     .getDrawable(R.drawable.ic_launcher));
         }
-        final String title = cursor.getString(cursor.getColumnIndex(PSBCCount.Company_data.DATA_INFORMATION));
-        if (TextUtils.isEmpty(title)) {
+        final String dataInfo = cursor.getString(cursor.getColumnIndex(PSBCCount.Company_data.DATA_INFORMATION));
+        if (TextUtils.isEmpty(dataInfo)) {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日   HH:mm:ss");
             Date curDate = new Date(System.currentTimeMillis());
             String str = formatter.format(curDate);
             holder.titleString.setText("PSBC test demo app , create a new picture when " + str);
         } else {
-            holder.titleString.setText(title);
+            holder.titleString.setText(dataInfo);
         }
         final String information = cursor.getString(cursor.getColumnIndex(PSBCCount.Company_data.DATA_TITLE));
         if (TextUtils.isEmpty(information)) {
@@ -87,33 +89,48 @@ public class DeleteAdapter extends GroupingListAdapter {
         } else {
             holder.contentText.setText(information);
         }
-        final String token = cursor.getString(cursor.getColumnIndex(PSBCCount.Company_data.ID));
         holder.btnDelete.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 showInfo("点击删除了" + baseId);
-                doDeleteAction(baseId + "");
+                doDeleteAction(baseId + "", information);
             }
         });
 
         holder.btnUpdate.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                String token = DemoActivity.getKeyToken();
+                if (TextUtils.isEmpty(token)) {
+                    Log.d(TAG, "the token was empty, please login first!!!");
+                    context.sendBroadcast(new Intent(DemoActivity.ACTION_TO_LOGOUT));
+                    return;
+                }
                 showInfo("update!" + baseId);
-                doUploadAction(baseId + "", token, title, information, drawable);
+                doUploadAction(baseId + "", token, dataInfo, information, drawable);
             }
         });
         Log.d(TAG, "The bindView end!");
     }
 
-    void doDeleteAction(String whichColumns) {
+    void doDeleteAction(String whichColumns, String info) {
         String where = BaseColumns._ID + "=?";
         String[] selectionArgs = new String[]{whichColumns};
-        context.getContentResolver().delete(PSBCCount.Uri.COMPANY_DATA_URI, where, selectionArgs);
+        context.getContentResolver().delete(PSBCCount.Uri_local.LOCAL_DATA_URI, where, selectionArgs);
+
+
+        String whereApp1 = PSBCCount.Company_data.DATA_INFORMATION + "=?";
+        String[] selectionArgsApp1 = new String[] {info};
+
+        try {
+            context.getContentResolver().delete(PSBCCount.Uri.COMPANY_DATA_URI, whereApp1, selectionArgsApp1);
+        } catch (Exception e) {
+        }
+
         mCallback.onDataChanged();
     }
 
-    void doUploadAction(final String whichColumns, String token, String title, String content, Drawable thumbnail) {
+    void doUploadAction(final String whichColumns, final String token, final String title, final String content, final Drawable thumbnail) {
         showProgressDialog(context, "uploading...", false);
         PSBCDataBean dataBean = new PSBCDataBean();
         CompanyDataBean companyDataBean = new CompanyDataBean();
@@ -139,7 +156,20 @@ public class DeleteAdapter extends GroupingListAdapter {
                     public void ftpUploadCallback() {
                         dismissProgress();
                         Log.d(TAG, "successful!");
-                        doDeleteAction(whichColumns);
+//                        try {
+//                            ContentValues values = new ContentValues();
+//                            values.put(PSBCCount.Company_data.ID, token);
+//                            values.put(PSBCCount.Company_data.DATA_TITLE, content);
+//                            values.put(PSBCCount.Company_data.DATA_INFORMATION, title);
+//                            Bitmap bitmap = ((BitmapDrawable)thumbnail).getBitmap();
+//                            final ByteArrayOutputStream thumbnailOs = new ByteArrayOutputStream();
+//                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, thumbnailOs);
+//                            values.put(PSBCCount.Company_data.DATA_THUMBNAIL, thumbnailOs.toByteArray());
+//                            context.getContentResolver().insert(PSBCCount.Uri.COMPANY_DATA_URI, values);
+//                        } catch (Exception e) {
+//
+//                        }
+                        doDeleteAction(whichColumns, content);
                     }
 
                     @Override
