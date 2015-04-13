@@ -29,6 +29,9 @@ public class FTPService extends Service {
     private static FTPService INSTANCE;
     FTPClient mFTPClient = new FTPClient();
     List<CompanyDataBean> mList = new ArrayList<>();
+    String mUrl;
+    String mUsername;
+    String mPassword;
 
     public FTPService() {
     }
@@ -77,12 +80,12 @@ public class FTPService extends Service {
                     if (mFTPClient.isConnected()) {
                         mFTPClient.disconnect();
                     }
-                    mFTPClient.connect("192.168.10.210");
+                    mFTPClient.connect(mUrl);
                     int replyCode = mFTPClient.getReplyCode();
                     Log.d(TAG, "check the reply code [" + replyCode + "]");
                     if (FTPReply.isPositiveCompletion(replyCode)) {
                         Log.d(TAG, "now begin login! connect successful!");
-                        mFTPClient.login("pekall", "pekall");
+                        mFTPClient.login(mUsername, mPassword);
                         notifyCallback(this.mCallback, MSG_CONNECT_SUCCESSFUL, 0, null, this.THREAD_ID);
                     } else {
                         Log.d(TAG, "connect failed!");
@@ -246,22 +249,32 @@ public class FTPService extends Service {
         }
     }
 
+    private void updateFtpClientSetting(FTPAndroidClientManager.SettingFtpClient settingFtpClient) {
+        mUrl = settingFtpClient.getUrl();
+        mUsername = settingFtpClient.getUsername();
+        mPassword = settingFtpClient.getPassword();
+    }
+
     public void startDownloadFile(int ftpThreadId, String filePath, FTPAndroidClientManager
-            .FTPThreadCallback callback) {
+            .FTPThreadCallback callback, FTPAndroidClientManager.SettingFtpClient settingFtpClient) {
+        updateFtpClientSetting(settingFtpClient);
         DownloadThread thread = new DownloadThread(ftpThreadId, callback, filePath);
         thread.start();
     }
 
     public void startUploadFile(int ftpThreadId, String filePath, FTPAndroidClientManager.FTPThreadCallback
-            callback, PSBCDataBean psbcDataBean) {
+            callback, PSBCDataBean psbcDataBean, FTPAndroidClientManager.SettingFtpClient settingFtpClient) {
+        updateFtpClientSetting(settingFtpClient);
         UploadThread thread = new UploadThread(ftpThreadId, callback, filePath);
         thread.setPSBCDataBean(psbcDataBean);
         thread.start();
     }
 
     public void syncRemoteData(int ftpThreadId, String filePath, FTPAndroidClientManager.FTPThreadCallback
-            callback, String token, FTPAndroidClientManager.SyncRemoteDataCallback syncCallback) {
+            callback, String token, FTPAndroidClientManager.SyncRemoteDataCallback syncCallback,
+                               FTPAndroidClientManager.SettingFtpClient settingFtpClient) {
         Log.d(TAG, "syncRemoteData");
+        updateFtpClientSetting(settingFtpClient);
         if (mStatus != SyncThreadStatus.FREED && mSyncThread != null) {
             mSyncThread.shortDown();
             mSyncThread = null;

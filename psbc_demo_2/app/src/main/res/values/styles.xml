@@ -47,4 +47,9 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
+    <style name="exit_dialog_style" parent="android:Theme.Holo.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>

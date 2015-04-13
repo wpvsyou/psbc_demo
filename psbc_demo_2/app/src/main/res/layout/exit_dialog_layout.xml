@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/exit_dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:paddingLeft="12dip"
+        android:paddingTop="8dip"
+        android:singleLine="true"
+        android:text="FTP client setting url"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
+        android:textColor="#808080" />
+
+    <LinearLayout
+        android:id="@+id/doc_dialog_delete_message"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:minHeight="93dip"
+        android:padding="10dip">
+
+        <TextView
+            android:id="@+id/exit_dialog_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="content"
+            android:textAppearance="?android:attr/textAppearanceListItemSmall"
+            android:textColor="#FF191919" />
+
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/unlock_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:gravity="center"
+                android:id="@+id/username_tip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/large_textsize"
+                android:text="usernametip" />
+
+            <com.wp.demo.psbcdemo2.tools.EditTextWithDelete
+                android:layout_marginTop="20dip"
+                android:id="@+id/url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <com.wp.demo.psbcdemo2.tools.EditTextWithDelete
+                android:layout_marginTop="30dip"
+                android:id="@+id/username_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <com.wp.demo.psbcdemo2.tools.EditTextWithDelete
+                android:layout_marginTop="20dip"
+                android:id="@+id/password_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/exit_dialog_btns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="62dip">
+
+        <Button
+            android:id="@+id/exit_dialog_cancel_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/exit_dialog_cancel_btn_bkg"
+            android:text="w_lift"
+            android:textColor="#808080" />
+
+        <Button
+            android:id="@+id/exit_dialog_ok_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/exit_dialog_ok_btn_bkg"
+            android:text="g_right"
+            android:textColor="@color/white" />
+    </LinearLayout>
+</LinearLayout>

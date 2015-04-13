@@ -15,4 +15,9 @@
         android:title="@string/create_data"
         app:showAsAction="never"/>
 
+    <item
+        android:id="@+id/setting_action_url"
+        android:orderInCategory="100"
+        android:title="Setting FTP client"
+        app:showAsAction="never"/>
 </menu>

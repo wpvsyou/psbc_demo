@@ -15,4 +15,10 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/setting_action_url"
+        android:orderInCategory="100"
+        android:title="@string/setting_ftp_client"
+        app:showAsAction="never"/>
 </menu>

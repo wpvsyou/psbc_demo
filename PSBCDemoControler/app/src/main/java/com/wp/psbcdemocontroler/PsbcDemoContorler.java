@@ -84,6 +84,13 @@ public class PsbcDemoContorler {
         return CODE_SUCCESSFUL;
     }
 
+    /**
+     * 解冻账户。
+     *
+     * @param username 账户名。
+     * @param password 密码。
+     * @param callback 回调接口。 当服务器相应后回调并返回结果。
+     */
     public synchronized void unfreezeAccount(final String username, final String password, final ContorlerUnfreezeCallback callback) {
         switch (checkAccountLegitimacy(username, password)) {
             case CODE_WRONG_USERNAME_EMPTY:

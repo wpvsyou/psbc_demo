@@ -16,6 +16,7 @@
     <string name="no_remote_data_text">No remote data</string>
     <string name="loading_text">Please wait loading&#8230;</string>
     <string name="refresh">Refresh</string>
+    <string name="setting_ftp_client">Setting FTP client</string>
 
     <string name="setting_error_open_image">很抱歉，由于图片尺寸过大，或手机内存不足，导致图片打开失败。</string>
     <string name="setting_checkupdate_wait_please">请稍后&#8230;</string>

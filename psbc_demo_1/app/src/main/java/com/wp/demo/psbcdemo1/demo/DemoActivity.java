@@ -1,39 +1,40 @@
 package com.wp.demo.psbcdemo1.demo;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.wp.androidftpclient.FTPAndroidClientManager;
-import com.wp.demo.psbc.count.PSBCCount.Personnel;
-import com.wp.demo.psbc.count.PSBCCount.Uri;
 import com.wp.demo.psbcdemo1.psbccase.R;
 import com.wp.demo.psbcdemo1.tools.BaseFragment;
 import com.wp.demo.psbcdemo1.tools.BaseFragmentActivity;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import bean.PSBCDataBean;
-import bean.PersonalBean;
-import bean.Personals;
+import com.wp.demo.psbcdemo1.tools.Configuration;
+import com.wp.demo.psbcdemo1.tools.EditTextWithDelete;
 
 public class DemoActivity extends BaseFragmentActivity implements
         DemoFragment.UserSelectLogin {
 
     public interface HideRefreshBtn {
         void hideBth();
+
         void showBtn();
     }
 
@@ -55,7 +56,9 @@ public class DemoActivity extends BaseFragmentActivity implements
     ShowUserDataFragment mShowFragment;
     static boolean HAS_LOGIN;
     static String OBJ;
+    static Configuration mConfiguration;
     Toast mToast;
+    Dialog mDialog;
 
     protected MenuItem refreshItem;
 
@@ -89,6 +92,7 @@ public class DemoActivity extends BaseFragmentActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
+        mConfiguration = Configuration.getInstance(this);
         setContentView(R.layout.demo_activity_layout);
         BaseFragment.mCallback = mHideRefreshBtnCallback;
         if (null == savedInstanceState) {
@@ -96,17 +100,17 @@ public class DemoActivity extends BaseFragmentActivity implements
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragment_container, fragment).commit();
         }
-        ContentValues values = new ContentValues();
-        values.put(Personnel.USER_NAME, "pekall");
-        values.put(Personnel.PASSWORD, "pekall");
-        values.put(Personnel.ID, "pekall");
-        getContentResolver().insert(Uri.PERSONNEL_URI, values);
-
-        ContentValues values1 = new ContentValues();
-        values1.put(Personnel.USER_NAME, "wangpeng");
-        values1.put(Personnel.PASSWORD, "wangpeng");
-        values1.put(Personnel.ID, "wangpeng");
-        getContentResolver().insert(Uri.PERSONNEL_URI, values1);
+//        ContentValues values = new ContentValues();
+//        values.put(Personnel.USER_NAME, "pekall");
+//        values.put(Personnel.PASSWORD, "pekall");
+//        values.put(Personnel.ID, "pekall");
+//        getContentResolver().insert(Uri.PERSONNEL_URI, values);
+//
+//        ContentValues values1 = new ContentValues();
+//        values1.put(Personnel.USER_NAME, "wangpeng");
+//        values1.put(Personnel.PASSWORD, "wangpeng");
+//        values1.put(Personnel.ID, "wangpeng");
+//        getContentResolver().insert(Uri.PERSONNEL_URI, values1);
 
 //        PSBCDataBean psbcDataBean = new PSBCDataBean();
 //        PersonalBean personalBean = new PersonalBean();
@@ -249,9 +253,9 @@ public class DemoActivity extends BaseFragmentActivity implements
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        BaseFragment demoFragment = (BaseFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_container);
         if (id == R.id.action_settings) {
-            BaseFragment demoFragment = (BaseFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.fragment_container);
             if (null != demoFragment && !(demoFragment instanceof DemoFragment)) {
                 HAS_LOGIN = false;
                 DemoFragment fragment = new DemoFragment();
@@ -268,6 +272,12 @@ public class DemoActivity extends BaseFragmentActivity implements
         } else if (id == R.id.refresh) {
             showRefreshAnimation(item);
             sendBroadcast(new Intent(RemoteDataFragment.ACTION_REFRESH_DATA));
+        } else if (id == R.id.setting_action_url) {
+            if (null != demoFragment && !(demoFragment instanceof DemoFragment)) {
+                Toast.makeText(DemoActivity.this, "Pleas logout first!", Toast.LENGTH_SHORT).show();
+            } else {
+                showSettingDialog();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -285,5 +295,68 @@ public class DemoActivity extends BaseFragmentActivity implements
     public void onBackHomeOnClick() {
         super.onBackHomeOnClick();
         this.finish();
+    }
+
+    public static Configuration getConfiguration() {
+        return mConfiguration;
+    }
+
+    protected void showSettingDialog() {
+        if (null == mDialog) {
+            mDialog = new Dialog(this, R.style.exit_dialog_style);
+            mDialog.setContentView(R.layout.exit_dialog_layout);
+            TextView tv = (TextView) mDialog.findViewById(R.id.exit_dialog_content);
+            tv.setVisibility(View.GONE);
+            TextView tip = (TextView) mDialog.findViewById(R.id.username_tip);
+            tip.setText("Current setting : url[" + mConfiguration.getFtpClientUrl() + "] username[" + mConfiguration.getSuUsername() + "]");
+            LinearLayout linearLayout = (LinearLayout) mDialog.findViewById(R.id.unlock_layout);
+            linearLayout.setVisibility(View.VISIBLE);
+            final EditTextWithDelete url = (EditTextWithDelete) mDialog.findViewById(R.id.url);
+            url.setHint("Please set new URL");
+            final EditTextWithDelete username = (EditTextWithDelete) mDialog.findViewById(R.id.username_edit);
+            username.setHint("Please set username");
+            final EditTextWithDelete password = (EditTextWithDelete) mDialog.findViewById(R.id.password_edit);
+            password.setHint("Please set password");
+            password.setPassword(true);
+            Button okBtn = (Button) mDialog.findViewById(R.id.exit_dialog_ok_button);
+            okBtn.setText("Ok");
+            okBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!TextUtils.isEmpty(username.getText()) && !TextUtils.isEmpty(password.getText())
+                            && !TextUtils.isEmpty(url.getText())) {
+                        Log.d(TAG, "reset password successful!");
+                        mConfiguration.setFtpClientUrl(url.getText());
+                        mConfiguration.setSuUsername(username.getText());
+                        mConfiguration.setSuPassword(password.getText());
+                        Toast.makeText(DemoActivity.this, "Setting FTP client successful!", Toast.LENGTH_SHORT).show();
+                        mDialog.dismiss();
+                    } else {
+                        username.setText("");
+                        password.setText("");
+                        url.setText("");
+                        Toast.makeText(DemoActivity.this, "Wrong : url/user/pwd all un empty!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            Button cancelBtn = (Button) mDialog.findViewById(R.id.exit_dialog_cancel_button);
+            cancelBtn.setText("Cancel");
+            cancelBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mDialog.dismiss();
+                }
+            });
+        }
+        setWindows(mDialog);
+        mDialog.show();
+    }
+
+    protected void setWindows(Dialog dialog) {
+        Display d = getWindowManager().getDefaultDisplay();
+        Window window = dialog.getWindow();
+        WindowManager.LayoutParams p = window.getAttributes();
+        p.width = (int) (d.getWidth() * 0.7f);
+        window.setAttributes(p);
     }
 }

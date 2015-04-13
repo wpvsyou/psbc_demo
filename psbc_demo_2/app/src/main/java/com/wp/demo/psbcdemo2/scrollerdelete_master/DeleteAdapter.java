@@ -177,7 +177,22 @@ public class DeleteAdapter extends GroupingListAdapter {
                         dismissProgress();
                         Log.d(TAG, "failed! time out connect failed!!!!!!!!!!!!!");
                     }
-                }, dataBean);
+                }, dataBean, new FTPAndroidClientManager.SettingFtpClient() {
+                    @Override
+                    public String getUrl() {
+                        return DemoActivity.getFtpClientUrl();
+                    }
+
+                    @Override
+                    public String getUsername() {
+                        return DemoActivity.getSuUsername();
+                    }
+
+                    @Override
+                    public String getPassword() {
+                        return DemoActivity.getSuPassword();
+                    }
+                });
     }
 
     @Override

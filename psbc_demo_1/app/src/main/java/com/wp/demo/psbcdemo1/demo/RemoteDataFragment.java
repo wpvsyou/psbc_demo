@@ -153,6 +153,21 @@ public class RemoteDataFragment extends BaseFragment{
                         BaseFragment.mCallback.hideBth();
                         dismissProgress();
                     }
+                }, new FTPAndroidClientManager.SettingFtpClient() {
+                    @Override
+                    public String getUrl() {
+                        return DemoActivity.getConfiguration().getFtpClientUrl();
+                    }
+
+                    @Override
+                    public String getUsername() {
+                        return DemoActivity.getConfiguration().getSuUsername();
+                    }
+
+                    @Override
+                    public String getPassword() {
+                        return DemoActivity.getConfiguration().getSuPassword();
+                    }
                 });
     }
 

@@ -6,4 +6,8 @@
     <color name="gray">#CCCCCC</color>
     <color name="color_touch">#42ac9c</color>
 
+    <color name="mdm3_2_themes_color">#3ab9a5</color>
+    <color name="client_color_touch">#42ac9c</color>
+    <color name="btn_touch_bkg_1">#F0F0F0</color>
+    <color name="btn_touch_bkg_2">#CCCCCC</color>
 </resources>

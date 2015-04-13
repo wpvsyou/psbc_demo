@@ -1,6 +1,7 @@
 package com.wp.demo.psbcdemo2;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,16 +17,22 @@ import android.os.Message;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.wp.demo.psbc.count.PSBCCount;
 import com.wp.demo.psbc.count.PSBCCount.Company_data;
 import com.wp.demo.psbcdemo2.tools.BaseFragment;
 import com.wp.demo.psbcdemo2.tools.BaseFragmentActivity;
+import com.wp.demo.psbcdemo2.tools.EditTextWithDelete;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
@@ -54,6 +61,7 @@ public class DemoActivity extends BaseFragmentActivity implements
     LocDataListFragment mLocDataListFragment;
     static String OBJ;
     Button mCameraButton;
+    Dialog mDialog;
     CommandLockObserver mCommandLockObserver;
     CommandUnLockObserver mCommandUnlockObserver;
     static SharedPreferences mPreferences;
@@ -248,9 +256,9 @@ public class DemoActivity extends BaseFragmentActivity implements
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        BaseFragment demoFragment = (BaseFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_container);
         if (id == R.id.action_settings) {
-            BaseFragment demoFragment = (BaseFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.fragment_container);
             if (null != demoFragment && !(demoFragment instanceof DemoFragment)) {
                 mEditor.putBoolean(HAS_LOGIN, false).commit();
                 DemoFragment fragment = new DemoFragment();
@@ -266,7 +274,14 @@ public class DemoActivity extends BaseFragmentActivity implements
             setKeyToken(PUBLIC_KEY);
         } else if (id == R.id.create_data) {
             openCamera();
+        } else if (id == R.id.setting_action_url) {
+            if (null != demoFragment && !(demoFragment instanceof DemoFragment)) {
+                Toast.makeText(DemoActivity.this, "Pleas logout first!", Toast.LENGTH_SHORT).show();
+            } else {
+                showSettingDialog();
+            }
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -366,11 +381,98 @@ public class DemoActivity extends BaseFragmentActivity implements
         unregisterReceiver(mReceiver);
     }
 
+    private final static String FTP_CLIENT_URL = "ftp_client_url";
+    private final static String SU_USERNAME = "su_username";
+    private final static String SU_PASSWORD = "su_password";
+
+    public void setFtpClientUrl(String url) {
+        mEditor.putString(FTP_CLIENT_URL, url).commit();
+    }
+
+    public static String getFtpClientUrl() {
+        return mPreferences.getString(FTP_CLIENT_URL, "192.168.10.210");
+    }
+
+    public void setSuUsername(String username) {
+        mEditor.putString(SU_USERNAME, username).commit();
+    }
+
+    public static String getSuUsername() {
+        return mPreferences.getString(SU_USERNAME, "pekall");
+    }
+
+    public void setSuPassword(String password) {
+        mEditor.putString(SU_PASSWORD, password).commit();
+    }
+
+    public static String getSuPassword() {
+        return mPreferences.getString(SU_PASSWORD, "pekall");
+    }
+
     public static void setKeyToken(String token) {
         mEditor.putString(KEY_TOKEN, token).commit();
     }
 
     public static String getKeyToken() {
         return mPreferences.getString(KEY_TOKEN, PUBLIC_KEY);
+    }
+
+    protected void showSettingDialog() {
+        if (null == mDialog) {
+            mDialog = new Dialog(this, R.style.exit_dialog_style);
+            mDialog.setContentView(R.layout.exit_dialog_layout);
+            TextView tv = (TextView) mDialog.findViewById(R.id.exit_dialog_content);
+            tv.setVisibility(View.GONE);
+            TextView tip = (TextView) mDialog.findViewById(R.id.username_tip);
+            tip.setText("Current setting : url[" + getFtpClientUrl() + "] username[" + getSuUsername() + "]");
+            LinearLayout linearLayout = (LinearLayout) mDialog.findViewById(R.id.unlock_layout);
+            linearLayout.setVisibility(View.VISIBLE);
+            final EditTextWithDelete url = (EditTextWithDelete) mDialog.findViewById(R.id.url);
+            url.setHint("Please set new URL");
+            final EditTextWithDelete username = (EditTextWithDelete) mDialog.findViewById(R.id.username_edit);
+            username.setHint("Please set username");
+            final EditTextWithDelete password = (EditTextWithDelete) mDialog.findViewById(R.id.password_edit);
+            password.setHint("Please set password");
+            password.setPassword(true);
+            Button okBtn = (Button) mDialog.findViewById(R.id.exit_dialog_ok_button);
+            okBtn.setText("Ok");
+            okBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!TextUtils.isEmpty(username.getText()) && !TextUtils.isEmpty(password.getText())
+                            && !TextUtils.isEmpty(url.getText())) {
+                        Log.d(TAG, "reset password successful!");
+                        setFtpClientUrl(url.getText());
+                        setSuUsername(username.getText());
+                        setSuPassword(password.getText());
+                        Toast.makeText(DemoActivity.this, "Setting FTP client successful!", Toast.LENGTH_SHORT).show();
+                        mDialog.dismiss();
+                    } else {
+                        username.setText("");
+                        password.setText("");
+                        url.setText("");
+                        Toast.makeText(DemoActivity.this, "Wrong : url/user/pwd all un empty!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            Button cancelBtn = (Button) mDialog.findViewById(R.id.exit_dialog_cancel_button);
+            cancelBtn.setText("Cancel");
+            cancelBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mDialog.dismiss();
+                }
+            });
+        }
+        setWindows(mDialog);
+        mDialog.show();
+    }
+
+    protected void setWindows(Dialog dialog) {
+        Display d = getWindowManager().getDefaultDisplay();
+        Window window = dialog.getWindow();
+        WindowManager.LayoutParams p = window.getAttributes();
+        p.width = (int) (d.getWidth() * 0.7f);
+        window.setAttributes(p);
     }
 }

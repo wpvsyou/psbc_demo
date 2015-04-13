@@ -295,6 +295,21 @@ public class DemoFragment extends BaseFragment implements OnClickListener {
                             Log.d(TAG, " DemoFragment, connectFailed");
                             mHandler.sendEmptyMessage(MSG_TIME_OUE);
                         }
+                    }, new FTPAndroidClientManager.SettingFtpClient() {
+                        @Override
+                        public String getUrl() {
+                            return DemoActivity.getFtpClientUrl();
+                        }
+
+                        @Override
+                        public String getUsername() {
+                            return DemoActivity.getSuUsername();
+                        }
+
+                        @Override
+                        public String getPassword() {
+                            return DemoActivity.getSuPassword();
+                        }
                     });
         }
     }
